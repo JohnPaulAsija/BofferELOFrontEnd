@@ -8,6 +8,7 @@ import Signout from '@/components/signoutButton';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
+import { getMatchesFromAPI } from '@/lib/apiInteractions';
 import { supabase } from '@/lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { Link } from 'expo-router';
@@ -16,7 +17,7 @@ import { useEffect, useState } from 'react';
 export default function HomeScreen() {
   const [session, setSession] = useState<Session | null>(null)
 
-    useEffect(() => {
+  useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
@@ -42,6 +43,7 @@ export default function HomeScreen() {
         {session && session.user ? <View> 
           <ThemedText>Logged in as {session.user.email}</ThemedText> <Signout/>
           <Button title='Logsession' onPress={()=> console.log(session)}></Button>
+          <Button title='Fetch matches' onPress={getMatchesFromAPI}></Button>
           </View>  : <Auth />}
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
