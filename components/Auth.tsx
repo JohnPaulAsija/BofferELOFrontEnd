@@ -1,14 +1,12 @@
 import React, { useState } from "react";
-import { Alert, AppState, StyleSheet, View } from "react-native";
+import { Alert, AppState, Text, View, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../lib/supabase";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { getThemeColors, Typography, Spacing, BorderRadius } from "@/constants/theme";
+import { useTheme } from "@/contexts/ThemeContext";
 
-// Tells Supabase Auth to continuously refresh the session automatically if
-// the app is in the foreground. When this is added, you will continue to receive
-// `onAuthStateChange` events with the `TOKEN_REFRESHED` or `SIGNED_OUT` event
-// if the user's session is terminated. This should only be registered once.
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
     supabase.auth.startAutoRefresh();
@@ -19,39 +17,18 @@ AppState.addEventListener("change", (state) => {
 
 export default function Auth() {
   const router = useRouter();
+  const { isDark } = useTheme();
+  const colors = getThemeColors(isDark);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function signInWithEmail() {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      Alert.alert(error.message);
-    } else {
-      router.replace("/");
-    }
-    setLoading(false);
-  }
-
-  async function signUpWithEmail() {
-    setLoading(true);
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
-
-    if (error) {
-      Alert.alert(error.message);
-    } else if (!session) {
-      Alert.alert("Please check your inbox for email verification!");
+      Alert.alert("Sign In Failed", error.message);
     } else {
       router.replace("/");
     }
@@ -60,56 +37,90 @@ export default function Auth() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
+      <Text style={[styles.title, { color: colors.text.primary }]}>Sign In</Text>
+      <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
+        Welcome back to BofferElo
+      </Text>
+
+      <View style={styles.fields}>
         <Input
           label="Email"
-          leftIcon={{ type: "font-awesome", name: "envelope" }}
-          onChangeText={(text) => setEmail(text)}
+          onChangeText={setEmail}
           value={email}
           placeholder="email@address.com"
-          autoCapitalize={"none"}
+          autoCapitalize="none"
         />
-      </View>
-      <View style={styles.verticallySpaced}>
         <Input
           label="Password"
-          leftIcon={{ type: "font-awesome", name: "lock" }}
-          onChangeText={(text) => setPassword(text)}
+          onChangeText={setPassword}
           value={password}
-          secureTextEntry={true}
           placeholder="Password"
-          autoCapitalize={"none"}
+          autoCapitalize="none"
+          secureTextEntry
         />
       </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          title="Sign in"
-          disabled={loading}
-          onPress={() => signInWithEmail()}
-        />
+
+      <Button title="Sign In" disabled={loading} loading={loading} onPress={signInWithEmail} />
+
+      <View style={styles.divider}>
+        <View style={[styles.dividerLine, { backgroundColor: colors.border.primary }]} />
+        <Text style={[styles.dividerText, { color: colors.text.tertiary }]}>or</Text>
+        <View style={[styles.dividerLine, { backgroundColor: colors.border.primary }]} />
       </View>
-      <View style={styles.verticallySpaced}>
-        <Button
-          title="Sign up"
-          disabled={loading}
-          onPress={() => signUpWithEmail()}
-        />
-      </View>
+
+      <Pressable
+        style={[styles.registerButton, { borderColor: colors.border.secondary }]}
+        onPress={() => router.push("/register")}
+      >
+        <Text style={[styles.registerButtonText, { color: colors.text.secondary }]}>
+          New to BofferElo?{" "}
+          <Text style={{ color: colors.brand.amber, fontWeight: "600" }}>Create an account</Text>
+        </Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 40,
-    padding: 12,
+    padding: Spacing.lg,
   },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: "stretch",
+  title: {
+    fontSize: Typography.fontSize.xxl,
+    fontWeight: Typography.fontWeight.bold,
+    marginBottom: Spacing.xs,
+    textAlign: "center",
   },
-  mt20: {
-    marginTop: 20,
+  subtitle: {
+    fontSize: Typography.fontSize.base,
+    textAlign: "center",
+    marginBottom: Spacing.xl,
+  },
+  fields: {
+    marginBottom: Spacing.lg,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: Spacing.xl,
+    gap: Spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    fontSize: Typography.fontSize.sm,
+  },
+  registerButton: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    alignItems: "center",
+  },
+  registerButtonText: {
+    fontSize: Typography.fontSize.base,
+    textAlign: "center",
   },
 });

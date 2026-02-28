@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator, TextInput, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import { getLeaderboardFromAPI, LeaderboardEntry } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -9,8 +10,10 @@ const RANK_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
+  const router = useRouter();
 
   useEffect(() => {
     getLeaderboardFromAPI()
@@ -20,10 +23,6 @@ export default function Leaderboard() {
   }, []);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background.primary }}
-      contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-    >
       <View style={{
         borderWidth: 1,
         borderColor: colors.border.primary,
@@ -36,12 +35,15 @@ export default function Leaderboard() {
       }}>
       {/* Title */}
       <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
         borderBottomWidth: 1,
         borderBottomColor: colors.border.primary,
         paddingBottom: 12,
         marginBottom: 12,
       }}>
         <Text style={{
+          flex: 1,
           fontSize: 22,
           fontWeight: '700',
           color: colors.text.primary,
@@ -49,6 +51,23 @@ export default function Leaderboard() {
           {'🏆 '}
           <Text style={{ color: colors.brand.amber }}>Leaderboard</Text>
         </Text>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search warrior..."
+          placeholderTextColor={colors.text.tertiary}
+          style={{
+            height: 32,
+            paddingHorizontal: 10,
+            borderWidth: 1,
+            borderColor: colors.border.primary,
+            borderRadius: 6,
+            fontSize: 13,
+            color: colors.text.primary,
+            backgroundColor: colors.background.primary,
+            minWidth: 160,
+          }}
+        />
       </View>
 
       {/* Column headers */}
@@ -82,7 +101,10 @@ export default function Leaderboard() {
         <ActivityIndicator size="large" color={colors.brand.amber} style={{ marginTop: 32 }} />
       )}
 
-      {!leaderboardLoading && leaderboard.map((entry, index) => {
+      {!leaderboardLoading && leaderboard
+        .map((entry, index) => ({ entry, index }))
+        .filter(({ entry }) => entry.username.toLowerCase().includes(search.toLowerCase()))
+        .map(({ entry, index }) => {
         const isTop3 = index < 3;
         const rankColor = RANK_COLORS[index] ?? colors.text.secondary;
 
@@ -90,18 +112,19 @@ export default function Leaderboard() {
         const winRate = totalGames > 0 ? Math.round((entry.wins / totalGames) * 100) : 0;
 
         return (
-          <View
+          <Pressable
             key={entry.id}
-            style={{
+            onPress={() => router.push(`/user/${entry.id}`)}
+            style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: colors.background.secondary,
+              backgroundColor: pressed ? colors.background.tertiary : colors.background.secondary,
               borderRadius: 8,
               padding: 12,
               marginBottom: 6,
               borderWidth: 1,
               borderColor: isTop3 ? colors.brand.amber + '55' : colors.border.primary,
-            }}
+            })}
           >
             {/* Rank */}
             <Text style={{
@@ -157,10 +180,9 @@ export default function Leaderboard() {
             }}>
               {winRate}%
             </Text>
-          </View>
+          </Pressable>
         );
-      })}
+        })}
       </View>
-    </ScrollView>
   );
 }

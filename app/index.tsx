@@ -1,7 +1,7 @@
 import React from 'react';
-import { View } from 'react-native';
-import AppHeader from '@/components/AppHeader';
+import { ScrollView } from 'react-native';
 import Leaderboard from '@/components/Leaderboard';
+import RecentMatches from '@/components/RecentMatches';
 import { useTheme } from '@/contexts/ThemeContext';
 import { BofferEloStyles, getThemeColors } from '@/constants/theme';
 
@@ -10,9 +10,12 @@ export default function HomeScreen() {
   const colors = getThemeColors(isDark);
 
   return (
-    <View style={[BofferEloStyles.stackContent, { flex: 1, backgroundColor: colors.background.primary }]}>
-      <AppHeader />
-      <Leaderboard />
-    </View>
+    <ScrollView
+        style={[BofferEloStyles.stackContent, { flex: 1, backgroundColor: colors.background.primary }]}
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+      >
+        <Leaderboard />
+        <RecentMatches />
+      </ScrollView>
   );
 }

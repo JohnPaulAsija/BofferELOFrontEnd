@@ -15,12 +15,12 @@ const styles = BofferEloStyles;
 
 export default function AppHeader() {
   const router = useRouter();
-  const { session, signOut } = useAuth();
+  const { session, signOut, isSuperAdmin } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const colors = getThemeColors(isDark);
 
   const handleRecordMatchClick = () => {
-    // Placeholder - will navigate when pages are built
+    router.push('/record-match');
   };
 
   const handleLogin = () => {
@@ -34,7 +34,7 @@ export default function AppHeader() {
     ]}>
       <View style={styles.headerInner}>
         {/* Logo Section */}
-        <Pressable style={styles.logoSection}>
+        <Pressable style={styles.logoSection} onPress={() => router.push('/')}>
           <View style={[styles.logoIcon, { backgroundColor: colors.brand.amber }]}>
             <Sword style={{ transform: [{ rotate: '-45deg' }] }} />
           </View>
@@ -42,6 +42,16 @@ export default function AppHeader() {
             Boffer<Text style={[styles.logoAccent, { color: colors.brand.amber }]}>Elo</Text>
           </Text>
         </Pressable>
+
+        {/* Admin Panel Button - left of right section, superAdmin only */}
+        {isSuperAdmin && (
+          <Pressable
+            style={[styles.button, styles.outlineButton, { borderColor: colors.brand.amber }]}
+            onPress={() => router.push('/admin')}
+          >
+            <Text style={[styles.buttonText, { color: colors.brand.amber }]}>Admin Panel</Text>
+          </Pressable>
+        )}
 
         {/* Right Section - Actions */}
         <View style={styles.headerRight}>
@@ -53,6 +63,16 @@ export default function AppHeader() {
             >
               <Swords />
               <Text style={styles.buttonText}>Record Match</Text>
+            </Pressable>
+          )}
+
+          {/* My Profile Button - only when logged in */}
+          {session && (
+            <Pressable
+              style={[styles.button, styles.outlineButton, { borderColor: colors.border.secondary }]}
+              onPress={() => router.push('/profile')}
+            >
+              <Text style={[styles.buttonText, { color: colors.text.secondary }]}>My Profile</Text>
             </Pressable>
           )}
 
