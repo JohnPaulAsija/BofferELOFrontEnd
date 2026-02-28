@@ -1,15 +1,20 @@
-import { BofferEloColors } from "@/constants/theme";
+import { getThemeColors } from "@/constants/theme";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 
-export default function RootLayout() {
+function RootLayoutInner() {
+  const { isDark } = useTheme();
+  const colors = getThemeColors(isDark);
+
   return (
     <>
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: BofferEloColors.background.primary },
+          contentStyle: { backgroundColor: colors.background.primary },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -19,16 +24,26 @@ export default function RootLayout() {
             title: "Sign In",
             headerShown: true,
             headerStyle: {
-              backgroundColor: BofferEloColors.background.secondary,
+              backgroundColor: colors.background.secondary,
             },
-            headerTintColor: BofferEloColors.text.primary,
+            headerTintColor: colors.text.primary,
             headerTitleStyle: {
               fontWeight: "bold",
             },
           }}
         />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? "light" : "dark"} />
     </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <RootLayoutInner />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

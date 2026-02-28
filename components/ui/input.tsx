@@ -4,7 +4,6 @@ import { ThemedText } from '../themed-text'
 
 interface InputProps {
   label?: string
-  leftIcon?: { type: string; name: string }
   onChangeText: (text: string) => void
   value: string
   placeholder?: string
@@ -14,7 +13,6 @@ interface InputProps {
 
 export function Input({
   label,
-  leftIcon,
   onChangeText,
   value,
   placeholder,

@@ -53,6 +53,92 @@ export const Fonts = Platform.select({
 });
 
 // BofferElo Theme
+export const BofferEloColorsDark = {
+  // Background colors
+  background: {
+    primary: '#0f172a',    // Dark slate
+    secondary: '#1e293b',  // Slate 800
+    tertiary: '#334155',   // Slate 700
+  },
+
+  // Brand colors
+  brand: {
+    amber: '#f59e0b',      // Amber 500
+    red: '#dc2626',        // Red 600
+    orange: '#ea580c',     // Orange 600
+    amberDark: '#78350f',  // Amber 900
+  },
+
+  // Text colors
+  text: {
+    primary: '#f1f5f9',    // Slate 100
+    secondary: '#94a3b8',  // Slate 400
+    tertiary: '#64748b',   // Slate 500
+    white: '#ffffff',
+  },
+
+  // Border colors
+  border: {
+    primary: '#334155',    // Slate 700
+    secondary: '#475569',  // Slate 600
+  },
+
+  // Status colors
+  status: {
+    purple: '#a78bfa',     // Purple 400 (super admin)
+    amber: '#f59e0b',      // Amber 500 (admin)
+  },
+
+  // Utility
+  black: '#000000',
+  shadow: '#000',
+};
+
+export const BofferEloColorsLight = {
+  // Background colors
+  background: {
+    primary: '#f8fafc',    // Slate 50
+    secondary: '#f1f5f9',  // Slate 100
+    tertiary: '#e2e8f0',   // Slate 200
+  },
+
+  // Brand colors (same — these are the BofferElo brand)
+  brand: {
+    amber: '#d97706',      // Amber 600 (slightly darker for light bg contrast)
+    red: '#dc2626',        // Red 600
+    orange: '#ea580c',     // Orange 600
+    amberDark: '#fef3c7',  // Amber 100
+  },
+
+  // Text colors
+  text: {
+    primary: '#0f172a',    // Slate 900
+    secondary: '#475569',  // Slate 600
+    tertiary: '#94a3b8',   // Slate 400
+    white: '#ffffff',
+  },
+
+  // Border colors
+  border: {
+    primary: '#cbd5e1',    // Slate 300
+    secondary: '#94a3b8',  // Slate 400
+  },
+
+  // Status colors
+  status: {
+    purple: '#7c3aed',     // Purple 700
+    amber: '#d97706',      // Amber 600
+  },
+
+  // Utility
+  black: '#000000',
+  shadow: '#64748b',
+};
+
+export function getThemeColors(isDark: boolean) {
+  return isDark ? BofferEloColorsDark : BofferEloColorsLight;
+}
+
 export const BofferEloColors = {
   // Background colors
   background: {
