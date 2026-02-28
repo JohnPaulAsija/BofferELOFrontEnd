@@ -1,6 +1,8 @@
 import React from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 import { ThemedText } from '../themed-text'
+import { getThemeColors } from '@/constants/theme'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface InputProps {
   label?: string
@@ -19,14 +21,20 @@ export function Input({
   autoCapitalize = 'sentences',
   secureTextEntry = false,
 }: InputProps) {
+  const { isDark } = useTheme()
+  const colors = getThemeColors(isDark)
+
   return (
     <View style={styles.container}>
       {label && <ThemedText style={styles.label}>{label}</ThemedText>}
-      <View style={styles.inputWrapper}>
+      <View style={[styles.inputWrapper, {
+        borderColor: colors.border.primary,
+        backgroundColor: colors.background.secondary,
+      }]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: colors.text.primary }]}
           placeholder={placeholder}
-          placeholderTextColor="#888"
+          placeholderTextColor={colors.text.tertiary}
           onChangeText={onChangeText}
           value={value}
           autoCapitalize={autoCapitalize}
@@ -48,14 +56,11 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#fff',
   },
   input: {
     height: 48,
     fontSize: 16,
-    color: '#000',
   },
 })

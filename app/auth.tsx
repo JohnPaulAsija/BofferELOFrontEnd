@@ -1,21 +1,21 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import Auth from '@/components/Auth';
-import { BofferEloColors } from '@/constants/theme';
+import { getThemeColors } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function AuthPage() {
+  const { isDark } = useTheme();
+  const colors = getThemeColors(isDark);
+
   return (
-    <View style={styles.container}>
+    <View style={{
+      flex: 1,
+      backgroundColor: colors.background.primary,
+      justifyContent: 'center',
+      paddingHorizontal: 20,
+    }}>
       <Auth />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: BofferEloColors.background.primary,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-});

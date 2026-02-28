@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { getLeaderboardFromAPI, LeaderboardEntry } from '@/lib/apiInteractions';
-import { BofferEloColors } from '@/constants/theme';
+import { getThemeColors } from '@/constants/theme';
+import { useTheme } from '@/contexts/ThemeContext';
+
+const RANK_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const { isDark } = useTheme();
+  const colors = getThemeColors(isDark);
 
   useEffect(() => {
     getLeaderboardFromAPI()
@@ -16,32 +21,26 @@ export default function Leaderboard() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: BofferEloColors.background.primary }}
+      style={{ flex: 1, backgroundColor: colors.background.primary }}
       contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
     >
       <Text style={{
         fontSize: 22,
         fontWeight: '700',
-        color: BofferEloColors.text.primary,
+        color: colors.text.primary,
         marginBottom: 12,
       }}>
         {'🏆 '}
-        <Text style={{ color: BofferEloColors.brand.amber }}>Leaderboard</Text>
+        <Text style={{ color: colors.brand.amber }}>Leaderboard</Text>
       </Text>
 
       {leaderboardLoading && (
-        <ActivityIndicator size="large" color={BofferEloColors.brand.amber} style={{ marginTop: 32 }} />
+        <ActivityIndicator size="large" color={colors.brand.amber} style={{ marginTop: 32 }} />
       )}
 
       {!leaderboardLoading && leaderboard.map((entry, index) => {
         const isTop3 = index < 3;
-        const rankColor = index === 0
-          ? '#FFD700'
-          : index === 1
-          ? '#C0C0C0'
-          : index === 2
-          ? '#CD7F32'
-          : BofferEloColors.text.secondary;
+        const rankColor = RANK_COLORS[index] ?? colors.text.secondary;
 
         return (
           <View
@@ -49,12 +48,12 @@ export default function Leaderboard() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: BofferEloColors.background.secondary,
+              backgroundColor: colors.background.secondary,
               borderRadius: 8,
               padding: 12,
               marginBottom: 6,
               borderWidth: 1,
-              borderColor: isTop3 ? BofferEloColors.brand.amber + '55' : BofferEloColors.border.primary,
+              borderColor: isTop3 ? colors.brand.amber + '55' : colors.border.primary,
             }}
           >
             {/* Rank */}
@@ -72,7 +71,7 @@ export default function Leaderboard() {
               flex: 1,
               fontSize: 15,
               fontWeight: '500',
-              color: BofferEloColors.text.primary,
+              color: colors.text.primary,
             }}>
               {entry.username}
             </Text>
@@ -80,7 +79,7 @@ export default function Leaderboard() {
             {/* W / L */}
             <Text style={{
               fontSize: 13,
-              color: BofferEloColors.text.secondary,
+              color: colors.text.secondary,
               marginRight: 16,
             }}>
               {entry.wins}W / {entry.losses}L
@@ -90,7 +89,7 @@ export default function Leaderboard() {
             <Text style={{
               fontSize: 15,
               fontWeight: '700',
-              color: BofferEloColors.brand.amber,
+              color: colors.brand.amber,
               minWidth: 44,
               textAlign: 'right',
             }}>
