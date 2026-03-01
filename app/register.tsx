@@ -140,12 +140,13 @@ export default function RegisterScreen() {
       } = await supabase.auth.signUp({ email: email.trim(), password });
 
       if (signUpError) {
-        showError("Sign Up Failed", signUpError.message);
+        showError("Sign Up Failed", "Unable to create account. The email may already be in use, or the password does not meet requirements.");
         setLoading(false);
         return;
       }
 
       if (!session) {
+        setLoading(false);
         showInfo(
           "Verify Your Email",
           "Please check your inbox and verify your email address before signing in.",
@@ -166,8 +167,9 @@ export default function RegisterScreen() {
       }
 
       router.replace("/");
-    } catch (err: any) {
-      showError("Registration Failed", err.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An unexpected error occurred.";
+      showError("Registration Failed", message);
     } finally {
       setLoading(false);
     }

@@ -8,6 +8,10 @@ if (!API_URL) {
   throw new Error('Missing EXPO_PUBLIC_API_URL environment variable. Please add it to your .env file.');
 }
 
+if (!API_URL.startsWith('https://')) {
+  throw new Error('EXPO_PUBLIC_API_URL must use HTTPS');
+}
+
 export const getLeaderboardFromAPI = async (): Promise<LeaderboardEntry[]> => {
   const response = await fetch(`${API_URL}/users/top`);
   if (!response.ok) {

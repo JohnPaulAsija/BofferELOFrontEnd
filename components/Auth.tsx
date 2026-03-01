@@ -34,7 +34,7 @@ export default function Auth() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      showError("Sign In Failed", error.message);
+      showError("Sign In Failed", "Invalid email or password. Please try again.");
     } else {
       router.replace("/");
     }

@@ -14,6 +14,10 @@ if (!supabasePublishableKey) {
   throw new Error('Missing EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variable. Please add it to your .env file.');
 }
 
+if (!supabaseUrl.startsWith('https://')) {
+  throw new Error('EXPO_PUBLIC_SUPABASE_URL must use HTTPS');
+}
+
 export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   auth: {
     storage: localStorage,
