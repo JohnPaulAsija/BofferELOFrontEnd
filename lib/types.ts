@@ -49,3 +49,21 @@ export type UserProfile = {
   preferredWeapon: string | null;
   preferredShield: string | null;
 };
+
+export type UserMatch = {
+  id: string;
+  winnerId: string;
+  winnerName: string;
+  loserId: string;
+  loserName: string;
+  winnerEloBefore: number;
+  loserEloBefore: number;
+  eloChange: number;
+  confirmedAt: string | null;
+  reportedAt?: string;
+};
+
+export type MyMatchesResponse = {
+  confirmed: UserMatch[];
+  unconfirmed: UserMatch[];
+};

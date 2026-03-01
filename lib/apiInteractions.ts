@@ -1,6 +1,6 @@
-import { LeaderboardEntry, Match, MatchDetail, UserProfile } from '@/lib/types';
+import { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse } from '@/lib/types';
 
-export type { LeaderboardEntry, Match, MatchDetail, UserProfile };
+export type { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse };
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -96,6 +96,31 @@ export const updatePreferencesFromAPI = async (
     console.error('[updatePreferencesFromAPI] Request failed:', err.message);
     throw err;
   }
+};
+
+export const getUserMatchesFromAPI = async (
+  userId: string,
+  limit = 100
+): Promise<{ matches: Match[]; next_cursor: string | null }> => {
+  const response = await fetch(`${API_URL}/users/${userId}/matches?limit=${limit}`);
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status}`);
+    console.error('[getUserMatchesFromAPI] Request failed:', err.message);
+    throw err;
+  }
+  return response.json();
+};
+
+export const getMyMatchesFromAPI = async (jwt: string): Promise<MyMatchesResponse> => {
+  const response = await fetch(`${API_URL}/users/me/matches`, {
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status}`);
+    console.error('[getMyMatchesFromAPI] Request failed:', err.message);
+    throw err;
+  }
+  return response.json();
 };
 
 export const getUserProfileFromAPI = async (userId: string): Promise<UserProfile> => {
