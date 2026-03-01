@@ -1,6 +1,6 @@
-import { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse } from '@/lib/types';
+import { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch } from '@/lib/types';
 
-export type { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse };
+export type { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch };
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -175,6 +175,24 @@ export const getMatchDetailFromAPI = async (matchId: string): Promise<MatchDetai
   }
   const data = await response.json();
   return data.match as MatchDetail;
+};
+
+export const getPendingMatchesFromAPI = async (
+  jwt: string,
+  cursor?: string
+): Promise<{ pending_matches: PendingMatch[]; next_cursor: string | null }> => {
+  const url = cursor
+    ? `${API_URL}/admin/matches/pending?before=${encodeURIComponent(cursor)}`
+    : `${API_URL}/admin/matches/pending`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status}`);
+    if (__DEV__) console.error('[getPendingMatchesFromAPI] Request failed:', err.message);
+    throw err;
+  }
+  return response.json();
 };
 
 export const reportMatchFromAPI = async (

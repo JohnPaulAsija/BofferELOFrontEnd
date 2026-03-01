@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BofferEloStyles, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ErrorModal } from '@/components/ui/error-modal';
+import { getPendingMatchesFromAPI, PendingMatch } from '@/lib/apiInteractions';
+import PendingMatchList from '@/components/PendingMatchList';
 
 export default function AdminScreen() {
   const { isDark } = useTheme();
@@ -12,6 +14,8 @@ export default function AdminScreen() {
   const { session, loading, isAdmin } = useAuth();
   const router = useRouter();
   const [deniedModal, setDeniedModal] = useState(false);
+  const [pendingMatches, setPendingMatches] = useState<PendingMatch[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(true);
 
   useEffect(() => {
     if (loading) return;
@@ -21,11 +25,23 @@ export default function AdminScreen() {
     }
     if (!isAdmin) {
       setDeniedModal(true);
+      return;
     }
+
+    let cancelled = false;
+    getPendingMatchesFromAPI(session.access_token)
+      .then((data) => { if (!cancelled) setPendingMatches(data.pending_matches); })
+      .catch((err) => { if (!cancelled) console.error('[AdminScreen] Failed to load pending matches:', err); })
+      .finally(() => { if (!cancelled) setMatchesLoading(false); });
+
+    return () => { cancelled = true; };
   }, [loading, session, isAdmin]);
 
   return (
-    <View style={[BofferEloStyles.stackContent, { flex: 1, backgroundColor: colors.background.primary, justifyContent: 'center', alignItems: 'center' }]}>
+    <ScrollView
+      style={[BofferEloStyles.stackContent, { flex: 1, backgroundColor: colors.background.primary }]}
+      contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+    >
       <ErrorModal
         visible={deniedModal}
         title="Access Denied"
@@ -35,12 +51,10 @@ export default function AdminScreen() {
           router.replace('/');
         }}
       />
-      <Text style={{ fontSize: 24, fontWeight: 'bold', color: colors.text.primary, marginBottom: 8 }}>
-        Admin Panel
-      </Text>
-      <Text style={{ fontSize: 16, color: colors.text.secondary }}>
-        Admin panel coming soon
-      </Text>
-    </View>
+      <PendingMatchList
+        matches={pendingMatches}
+        loading={matchesLoading}
+      />
+    </ScrollView>
   );
 }

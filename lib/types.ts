@@ -67,3 +67,18 @@ export type MyMatchesResponse = {
   confirmed: UserMatch[];
   unconfirmed: UserMatch[];
 };
+
+export type PendingMatch = {
+  id: string;
+  winnerId: string;
+  winnerName: string;
+  loserId: string;
+  loserName: string;
+  winnerEloBefore: number;
+  loserEloBefore: number;
+  eloChange: number;
+  reporterId: string;
+  reporterName: string;
+  reportedAt: string;
+  confirmedAt: null;
+};
