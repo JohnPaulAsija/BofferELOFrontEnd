@@ -37,3 +37,29 @@ Issues below have been fixed and removed from `plans/code-review.md`.
 - `components/UserProfile.tsx`
 - `app/record-match.tsx`
 - `app/match/[id].tsx`
+
+### 8. Backend error messages displayed to users (was Medium)
+**Resolution:** Replaced raw `(data as any).detail` error strings in `lib/apiInteractions.ts` with status-code-keyed friendly messages in `setupUserFromAPI`, `updatePreferencesFromAPI`, and `reportMatchFromAPI`. Removed the `await response.json()` calls that existed solely to read `detail`.
+
+### 9. Console logging in production (was Medium)
+**Resolution:** Wrapped all `console.error` calls in `lib/apiInteractions.ts` with `if (__DEV__)` guards. The Metro bundler statically eliminates the dead branch in production builds.
+
+### 10. `any` type usage (was Medium — fully resolved)
+**Resolution:** Fixed all remaining `any` usages:
+- `components/AppHeader.tsx` — typed the four icon components with `{ style?: StyleProp<TextStyle> }` using proper react-native imports
+- `app/record-match.tsx` — changed `catch (err: any)` to `catch (err: unknown)` with `instanceof Error` narrowing
+- `components/ProfilePreferences.tsx` — changed `catch (err: any)` to `catch (err: unknown)` as part of issue 15
+
+### 12. Accessibility gaps (was Low)
+**Resolution:**
+- `components/AppHeader.tsx` — added `accessibilityLabel` and `accessibilityRole="button"` to all five Pressables; added `accessible={false}` to icon Text elements to hide emoji from the a11y tree
+- `components/Leaderboard.tsx` and `components/MatchList.tsx` — changed search input `height: 32` to `minHeight: 44` to meet the platform 44pt minimum touch target guideline
+
+### 13. Hardcoded colors bypassing theme (was Low)
+**Resolution:** Extended `constants/theme.ts` with three new tokens (`green`, `greenDark`, `redDark`) in both dark and light color objects. Replaced all 10 hardcoded hex values in `app/match/[id].tsx` and 2 in `app/record-match.tsx` with theme references.
+
+### 14. Non-null assertion instead of safe fallback (was Low)
+**Resolution:** Replaced `match.confirmedByName!` and `match.rejectedByName!` in `app/match/[id].tsx` with `?? 'Unknown'` fallbacks.
+
+### 15. Inconsistent error modal state shape (was Low)
+**Resolution:** Created `hooks/useErrorModal.ts` exporting `{ modal, showError, showInfo, hideModal }`. Replaced inline modal state and helper functions in `app/register.tsx`, `components/Auth.tsx`, `components/ProfilePreferences.tsx`, and `app/record-match.tsx` with the shared hook.
