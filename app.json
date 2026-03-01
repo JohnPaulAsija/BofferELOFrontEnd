@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "supabasetest",
-    "slug": "supabasetest",
+    "slug": "boffer-elo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -45,6 +45,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5c5867fb-fbe5-4e2b-8496-f1386fbd32ad"
+      }
+    },
+    "owner": "johnasija"
   }
 }
