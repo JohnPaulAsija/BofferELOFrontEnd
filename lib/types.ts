@@ -18,6 +18,26 @@ export type Match = {
   confirmedAt: string;
 };
 
+export type MatchDetail = {
+  id: string;
+  winnerId: string;
+  winnerName: string;
+  loserId: string;
+  loserName: string;
+  winnerEloBefore: number;
+  loserEloBefore: number;
+  eloChange: number;
+  reporterId: string;
+  reporterName: string;
+  reportedAt: string;
+  confirmedAt: string | null;
+  confirmedById: string | null;
+  confirmedByName: string | null;
+  rejectedAt: string | null;
+  rejectedById: string | null;
+  rejectedByName: string | null;
+};
+
 export type UserProfile = {
   id: string;
   username: string;
