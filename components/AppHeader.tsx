@@ -70,7 +70,7 @@ export default function AppHeader() {
           {session && (
             <Pressable
               style={[styles.button, styles.outlineButton, { borderColor: colors.border.secondary }]}
-              onPress={() => router.push('/profile')}
+              onPress={() => router.push(`/user/${session.user.id}`)}
             >
               <Text style={[styles.buttonText, { color: colors.text.secondary }]}>My Profile</Text>
             </Pressable>
