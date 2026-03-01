@@ -16,7 +16,7 @@ export const getLeaderboardFromAPI = async (): Promise<LeaderboardEntry[]> => {
   const response = await fetch(`${API_URL}/users/top`);
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getLeaderboardFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getLeaderboardFromAPI] Request failed:', err.message);
     throw err;
   }
   const data = await response.json();
@@ -27,7 +27,7 @@ export const getRecentMatchesFromAPI = async (): Promise<Match[]> => {
   const response = await fetch(`${API_URL}/matches`);
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getRecentMatchesFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getRecentMatchesFromAPI] Request failed:', err.message);
     throw err;
   }
   const data = await response.json();
@@ -47,7 +47,7 @@ export const getMeFromAPI = async (jwt: string): Promise<MeResponse> => {
   });
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getMeFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getMeFromAPI] Request failed:', err.message);
     throw err;
   }
   const data = await response.json();
@@ -65,7 +65,7 @@ export const getOptionsFromAPI = async (): Promise<OptionsResponse> => {
   const response = await fetch(`${API_URL}/options`);
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getOptionsFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getOptionsFromAPI] Request failed:', err.message);
     throw err;
   }
   return response.json();
@@ -78,10 +78,11 @@ export const setupUserFromAPI = async (jwt: string, username: string): Promise<v
     body: JSON.stringify({ username, accept_terms: true }),
   });
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    const err = new Error((data as any).detail || `HTTP ${response.status}`);
-    console.error('[setupUserFromAPI] Request failed:', err.message);
-    throw err;
+    const messages: Record<number, string> = {
+      409: 'That username is already taken. Please choose a different one.',
+      400: 'Invalid username. Please use only letters, numbers, and underscores (3–30 characters).',
+    };
+    throw new Error(messages[response.status] ?? 'Account setup failed. Please try again.');
   }
 };
 
@@ -95,10 +96,10 @@ export const updatePreferencesFromAPI = async (
     body: JSON.stringify(prefs),
   });
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    const err = new Error((data as any).detail || `HTTP ${response.status}`);
-    console.error('[updatePreferencesFromAPI] Request failed:', err.message);
-    throw err;
+    const messages: Record<number, string> = {
+      400: 'Invalid preference value. Please check your selections.',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to save preferences. Please try again.');
   }
 };
 
@@ -109,7 +110,7 @@ export const getUserMatchesFromAPI = async (
   const response = await fetch(`${API_URL}/users/${userId}/matches?limit=${limit}`);
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getUserMatchesFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getUserMatchesFromAPI] Request failed:', err.message);
     throw err;
   }
   return response.json();
@@ -121,7 +122,7 @@ export const getMyMatchesFromAPI = async (jwt: string): Promise<MyMatchesRespons
   });
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getMyMatchesFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getMyMatchesFromAPI] Request failed:', err.message);
     throw err;
   }
   return response.json();
@@ -131,7 +132,7 @@ export const getUserProfileFromAPI = async (userId: string): Promise<UserProfile
   const response = await fetch(`${API_URL}/users/${userId}`);
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getUserProfileFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getUserProfileFromAPI] Request failed:', err.message);
     throw err;
   }
   const data = await response.json();
@@ -149,7 +150,7 @@ export const getUsersListFromAPI = async (jwt: string): Promise<UserListEntry[]>
   });
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getUsersListFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getUsersListFromAPI] Request failed:', err.message);
     throw err;
   }
   const data = await response.json();
@@ -169,7 +170,7 @@ export const getMatchDetailFromAPI = async (matchId: string): Promise<MatchDetai
   const response = await fetch(`${API_URL}/matches/${matchId}`);
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    console.error('[getMatchDetailFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error('[getMatchDetailFromAPI] Request failed:', err.message);
     throw err;
   }
   const data = await response.json();
@@ -187,10 +188,12 @@ export const reportMatchFromAPI = async (
     body: JSON.stringify({ winner_id, loser_id }),
   });
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    const err = new Error((data as any).detail || `HTTP ${response.status}`);
-    console.error('[reportMatchFromAPI] Request failed:', err.message);
-    throw err;
+    const messages: Record<number, string> = {
+      409: 'This match has already been reported.',
+      429: "You've reported too many matches recently. Please wait before reporting another.",
+      400: 'Invalid match data. Please check your selection and try again.',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to report match. Please try again.');
   }
   return response.json();
 };

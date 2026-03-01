@@ -13,6 +13,7 @@ import { BofferEloStyles, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ErrorModal } from '@/components/ui/error-modal';
+import { useErrorModal } from '@/hooks/useErrorModal';
 import {
   getUsersListFromAPI,
   reportMatchFromAPI,
@@ -35,11 +36,7 @@ export default function RecordMatchScreen() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [selectedOpponent, setSelectedOpponent] = useState<UserListEntry | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [errorModal, setErrorModal] = useState<{ visible: boolean; title: string; message: string }>({
-    visible: false,
-    title: '',
-    message: '',
-  });
+  const { modal: errorModal, showError, hideModal: hideErrorModal } = useErrorModal();
   const [successResult, setSuccessResult] = useState<ReportMatchResponse | null>(null);
 
   useEffect(() => {
@@ -55,7 +52,7 @@ export default function RecordMatchScreen() {
       .then((data) => { if (!cancelled) setUsers(data); })
       .catch(() => {
         if (!cancelled)
-          setErrorModal({ visible: true, title: 'Error', message: 'Could not load players. Please try again.' });
+          showError('Error', 'Could not load players. Please try again.');
       })
       .finally(() => { if (!cancelled) setUsersLoading(false); });
     return () => { cancelled = true; };
@@ -76,12 +73,11 @@ export default function RecordMatchScreen() {
       const loserId = outcome === 'win' ? selectedOpponent.id : myId;
       const result = await reportMatchFromAPI(session.access_token, winnerId, loserId);
       setSuccessResult(result);
-    } catch (err: any) {
-      setErrorModal({
-        visible: true,
-        title: 'Failed to Report Match',
-        message: err.message || 'Something went wrong. Please try again.',
-      });
+    } catch (err: unknown) {
+      showError(
+        'Failed to Report Match',
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -111,7 +107,7 @@ export default function RecordMatchScreen() {
         title={errorModal.title}
         message={errorModal.message}
         variant="error"
-        onDismiss={() => setErrorModal({ ...errorModal, visible: false })}
+        onDismiss={hideErrorModal}
       />
       <ErrorModal
         visible={successResult !== null}
@@ -249,11 +245,11 @@ const styles = (isDark: boolean, colors: ReturnType<typeof getThemeColors>) =>
     outcomeLoss: {},
     outcomeButtonActive: {
       borderColor: colors.brand.amber,
-      backgroundColor: isDark ? '#78350f33' : '#fef3c7',
+      backgroundColor: isDark ? colors.brand.amberDark + '33' : colors.brand.amberDark,
     },
     outcomeButtonActiveLoss: {
       borderColor: colors.brand.red,
-      backgroundColor: isDark ? '#7f1d1d33' : '#fee2e2',
+      backgroundColor: isDark ? colors.brand.redDark + '33' : colors.brand.redDark,
     },
     outcomeIcon: {
       fontSize: 28,

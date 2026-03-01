@@ -9,40 +9,6 @@
 
 ---
 
-## Medium Severity
-
-### 8. Backend error messages displayed directly to users
-`lib/apiInteractions.ts` throws errors with raw backend `detail` messages, and screens like `register.tsx` and `record-match.tsx` display them verbatim. This leaks implementation details. Map API errors to user-friendly messages.
-
-### 9. Console logging in production
-Every function in `lib/apiInteractions.ts` has `console.error(...)` calls that will run in production builds, leaking API structure info in browser devtools (web target).
-
-### 10. `any` type usage despite `strict: true` in tsconfig
-Several places use `: any` defeating TypeScript's safety:
-- `components/AppHeader.tsx` — icon component props (`{ style }: any`)
-- `app/record-match.tsx:79` — `catch (err: any)`
-
-Replace with `unknown` and narrow via `err instanceof Error`. (`app/register.tsx:169` and `components/UserProfile.tsx` were already fixed.)
-
----
-
-## Low Severity
-
-### 12. Accessibility gaps
-- Emoji icons in `AppHeader.tsx` (sword, login/logout arrows) lack `accessibilityLabel`
-- `TextInput` heights of 32pt in `Leaderboard.tsx` and `MatchList.tsx` are below the 44pt minimum touch target guideline
-
-### 13. Hardcoded colors bypassing theme
-`app/match/[id].tsx:74` has hardcoded `#22c55e`, `#14532d33`, `#dcfce7`, etc. instead of using `BofferEloColors` from the theme system.
-
-### 14. Non-null assertion instead of safe fallback
-`app/match/[id].tsx:169` uses `match.confirmedByName!` — should be `match.confirmedByName ?? 'Unknown'`.
-
-### 15. Inconsistent error modal state shape
-`app/register.tsx` uses `{ variant, onAfterDismiss }` in its modal state while `components/UserProfile.tsx` uses a simpler shape. A shared `useErrorModal` hook would standardize this.
-
----
-
 ## What's Done Well
 
 - Supabase auth configuration is solid — `autoRefreshToken`, `persistSession`, `detectSessionInUrl: false`, proper session cleanup in `AuthContext`

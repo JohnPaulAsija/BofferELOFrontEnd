@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getThemeColors, Spacing, Typography, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useErrorModal } from "@/hooks/useErrorModal";
 
 function OptionPicker({
   label,
@@ -84,27 +85,7 @@ export default function RegisterScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<OptionsResponse | null>(null);
-  const [modal, setModal] = useState<{
-    visible: boolean;
-    title: string;
-    message: string;
-    variant: 'error' | 'info';
-    onAfterDismiss?: () => void;
-  }>({ visible: false, title: '', message: '', variant: 'error' });
-
-  function showError(title: string, message: string, onAfterDismiss?: () => void) {
-    setModal({ visible: true, title, message, variant: 'error', onAfterDismiss });
-  }
-
-  function showInfo(title: string, message: string, onAfterDismiss?: () => void) {
-    setModal({ visible: true, title, message, variant: 'info', onAfterDismiss });
-  }
-
-  function hideModal() {
-    const afterDismiss = modal.onAfterDismiss;
-    setModal(prev => ({ ...prev, visible: false, onAfterDismiss: undefined }));
-    afterDismiss?.();
-  }
+  const { modal, showError, showInfo, hideModal } = useErrorModal();
 
   useEffect(() => {
     getOptionsFromAPI()

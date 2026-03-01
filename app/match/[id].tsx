@@ -76,9 +76,9 @@ export default function MatchDetailScreen() {
   const status = getStatus(match);
 
   const statusConfig = {
-    confirmed: { label: 'Confirmed', color: '#22c55e', bg: isDark ? '#14532d33' : '#dcfce7' },
-    pending:   { label: 'Pending',   color: colors.brand.amber, bg: isDark ? '#78350f33' : '#fef3c7' },
-    rejected:  { label: 'Rejected',  color: colors.brand.red,   bg: isDark ? '#7f1d1d33' : '#fee2e2' },
+    confirmed: { label: 'Confirmed', color: colors.brand.green, bg: isDark ? colors.brand.greenDark + '33' : colors.brand.greenDark },
+    pending:   { label: 'Pending',   color: colors.brand.amber, bg: isDark ? colors.brand.amberDark + '33' : colors.brand.amberDark },
+    rejected:  { label: 'Rejected',  color: colors.brand.red,   bg: isDark ? colors.brand.redDark  + '33' : colors.brand.redDark  },
   }[status];
 
   const winnerEloAfter = match.winnerEloBefore + match.eloChange;
@@ -170,7 +170,7 @@ export default function MatchDetailScreen() {
             <View style={s.divider} />
             <InfoRow
               label="Confirmed by"
-              value={match.confirmedByName!}
+              value={match.confirmedByName ?? 'Unknown'}
               onPress={() => router.push(`/user/${match.confirmedById}`)}
               colors={colors}
               isDark={isDark}
@@ -189,7 +189,7 @@ export default function MatchDetailScreen() {
             <View style={s.divider} />
             <InfoRow
               label="Rejected by"
-              value={match.rejectedByName!}
+              value={match.rejectedByName ?? 'Unknown'}
               onPress={() => router.push(`/user/${match.rejectedById}`)}
               colors={colors}
               isDark={isDark}
@@ -302,7 +302,7 @@ const styles = (isDark: boolean, colors: ReturnType<typeof getThemeColors>) =>
       fontSize: 10,
       fontWeight: '700',
       letterSpacing: 1,
-      color: '#22c55e',
+      color: colors.brand.green,
       marginBottom: 4,
     },
     loserRole: {
@@ -330,7 +330,7 @@ const styles = (isDark: boolean, colors: ReturnType<typeof getThemeColors>) =>
     eloChangeBadge: {
       fontSize: 14,
       fontWeight: '700',
-      color: '#22c55e',
+      color: colors.brand.green,
     },
     eloBreakdown: {
       borderTopWidth: 1,
@@ -356,7 +356,7 @@ const styles = (isDark: boolean, colors: ReturnType<typeof getThemeColors>) =>
     },
     eloWinner: {
       fontSize: 13,
-      color: '#22c55e',
+      color: colors.brand.green,
       fontWeight: '600',
     },
     eloLoser: {

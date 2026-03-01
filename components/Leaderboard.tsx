@@ -59,7 +59,7 @@ export default function Leaderboard() {
           placeholder="Search warrior..."
           placeholderTextColor={colors.text.tertiary}
           style={{
-            height: 32,
+            minHeight: 44,
             paddingHorizontal: 10,
             borderWidth: 1,
             borderColor: colors.border.primary,

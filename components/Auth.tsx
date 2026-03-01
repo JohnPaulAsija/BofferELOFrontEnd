@@ -7,6 +7,7 @@ import { Input } from "./ui/input";
 import { ErrorModal } from "./ui/error-modal";
 import { getThemeColors, Typography, Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useErrorModal } from "@/hooks/useErrorModal";
 
 export default function Auth() {
   const router = useRouter();
@@ -16,11 +17,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState({ visible: false, title: "", message: "" });
-
-  function showError(title: string, message: string) {
-    setModal({ visible: true, title, message });
-  }
+  const { modal, showError, hideModal } = useErrorModal();
 
   async function signInWithEmail() {
     setLoading(true);
@@ -39,7 +36,7 @@ export default function Auth() {
         visible={modal.visible}
         title={modal.title}
         message={modal.message}
-        onDismiss={() => setModal(prev => ({ ...prev, visible: false }))}
+        onDismiss={hideModal}
       />
       <Text style={[styles.title, { color: colors.text.primary }]}>Sign In</Text>
       <Text style={[styles.subtitle, { color: colors.text.secondary }]}>

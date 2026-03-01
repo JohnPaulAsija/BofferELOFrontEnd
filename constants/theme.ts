@@ -67,6 +67,9 @@ export const BofferEloColorsDark = {
     red: '#dc2626',        // Red 600
     orange: '#ea580c',     // Orange 600
     amberDark: '#78350f',  // Amber 900
+    green: '#22c55e',      // Green 500
+    greenDark: '#14532d',  // Green 900 — confirmed bg tint (dark mode)
+    redDark: '#7f1d1d',    // Red 900   — rejected bg tint (dark mode)
   },
 
   // Text colors
@@ -108,6 +111,9 @@ export const BofferEloColorsLight = {
     red: '#dc2626',        // Red 600
     orange: '#ea580c',     // Orange 600
     amberDark: '#fef3c7',  // Amber 100
+    green: '#22c55e',      // Green 500
+    greenDark: '#dcfce7',  // Green 100 — confirmed bg tint (light mode)
+    redDark: '#fee2e2',    // Red 100   — rejected bg tint (light mode)
   },
 
   // Text colors

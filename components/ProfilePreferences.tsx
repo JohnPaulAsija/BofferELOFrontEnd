@@ -5,6 +5,7 @@ import { getThemeColors, BorderRadius, Spacing, Typography } from '@/constants/t
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ErrorModal } from '@/components/ui/error-modal';
+import { useErrorModal } from '@/hooks/useErrorModal';
 
 type ProfilePreferencesProps = {
   profile: UserProfile;
@@ -87,9 +88,7 @@ export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpd
   const [draftGame, setDraftGame] = useState<string | null>(null);
   const [draftWeapon, setDraftWeapon] = useState<string | null>(null);
   const [draftShield, setDraftShield] = useState<string | null>(null);
-  const [modal, setModal] = useState<{ visible: boolean; title: string; message: string }>({
-    visible: false, title: '', message: '',
-  });
+  const { modal, showError, hideModal } = useErrorModal();
 
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
@@ -134,8 +133,8 @@ export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpd
         preferredShield: draftShield,
       });
       setIsEditing(false);
-    } catch (err: any) {
-      setModal({ visible: true, title: 'Save Failed', message: err.message || 'Could not save preferences.' });
+    } catch (err: unknown) {
+      showError('Save Failed', err instanceof Error ? err.message : 'Could not save preferences.');
     } finally {
       setSaving(false);
     }
@@ -148,7 +147,7 @@ export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpd
         title={modal.title}
         message={modal.message}
         variant="error"
-        onDismiss={() => setModal((m) => ({ ...m, visible: false }))}
+        onDismiss={hideModal}
       />
 
       {/* Preferences header */}

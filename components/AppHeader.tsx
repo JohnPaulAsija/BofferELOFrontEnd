@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, Pressable, Platform } from 'react-native';
+import { View, Text, Pressable, Platform, StyleProp, TextStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BofferEloStyles, getThemeColors } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
 // Placeholder icons - you can replace with lucide-react-native if installed
-const Sword = ({ style }: any) => <Text style={[{ fontSize: 24 }, style]}>⚔️</Text>;
-const Swords = ({ style }: any) => <Text style={[{ fontSize: 16 }, style]}>⚔️</Text>;
-const LogIn = ({ style }: any) => <Text style={[{ fontSize: 16 }, style]}>→</Text>;
-const LogOut = ({ style }: any) => <Text style={[{ fontSize: 20 }, style]}>←</Text>;
+const Sword = ({ style }: { style?: StyleProp<TextStyle> }) => <Text accessible={false} style={[{ fontSize: 24 }, style]}>⚔️</Text>;
+const Swords = ({ style }: { style?: StyleProp<TextStyle> }) => <Text accessible={false} style={[{ fontSize: 16 }, style]}>⚔️</Text>;
+const LogIn = ({ style }: { style?: StyleProp<TextStyle> }) => <Text accessible={false} style={[{ fontSize: 16 }, style]}>→</Text>;
+const LogOut = ({ style }: { style?: StyleProp<TextStyle> }) => <Text accessible={false} style={[{ fontSize: 20 }, style]}>←</Text>;
 
 const styles = BofferEloStyles;
 
@@ -34,7 +34,12 @@ export default function AppHeader() {
     ]}>
       <View style={styles.headerInner}>
         {/* Logo Section */}
-        <Pressable style={styles.logoSection} onPress={() => router.push('/')}>
+        <Pressable
+          style={styles.logoSection}
+          onPress={() => router.push('/')}
+          accessibilityLabel="BofferElo — go to home"
+          accessibilityRole="button"
+        >
           <View style={[styles.logoIcon, { backgroundColor: colors.brand.amber }]}>
             <Sword style={{ transform: [{ rotate: '-45deg' }] }} />
           </View>
@@ -60,6 +65,8 @@ export default function AppHeader() {
             <Pressable
               style={[styles.button, styles.primaryButton]}
               onPress={handleRecordMatchClick}
+              accessibilityLabel="Record a match"
+              accessibilityRole="button"
             >
               <Swords />
               <Text style={styles.buttonText}>Record Match</Text>
@@ -71,6 +78,8 @@ export default function AppHeader() {
             <Pressable
               style={[styles.button, styles.outlineButton, { borderColor: colors.border.secondary }]}
               onPress={() => router.push(`/user/${session.user.id}`)}
+              accessibilityLabel="My profile"
+              accessibilityRole="button"
             >
               <Text style={[styles.buttonText, { color: colors.text.secondary }]}>My Profile</Text>
             </Pressable>
@@ -80,6 +89,8 @@ export default function AppHeader() {
           <Pressable
             style={[styles.button, styles.outlineButton, { borderColor: colors.border.secondary }]}
             onPress={toggleTheme}
+            accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            accessibilityRole="button"
           >
             <Text style={[styles.buttonText, { color: colors.text.secondary }]}>
               {isDark ? '☀ Light' : '☾ Dark'}
@@ -90,6 +101,8 @@ export default function AppHeader() {
             <Pressable
               style={[styles.button, styles.outlineButton, { borderColor: colors.brand.amber }]}
               onPress={signOut}
+              accessibilityLabel="Sign out"
+              accessibilityRole="button"
             >
               <LogOut />
               <Text style={[styles.buttonText, styles.outlineButtonText, { color: colors.brand.amber }]}>Sign Out</Text>
@@ -98,6 +111,8 @@ export default function AppHeader() {
             <Pressable
               style={[styles.button, styles.outlineButton, { borderColor: colors.brand.amber }]}
               onPress={handleLogin}
+              accessibilityLabel="Sign in"
+              accessibilityRole="button"
             >
               <LogIn />
               <Text style={[styles.buttonText, styles.outlineButtonText, { color: colors.brand.amber }]}>Sign In</Text>
