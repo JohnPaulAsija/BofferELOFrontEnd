@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, ActivityIndicator, TextInput, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import { getRecentMatchesFromAPI, Match } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -21,6 +22,7 @@ export default function RecentMatches() {
   const [search, setSearch] = useState('');
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
+  const router = useRouter();
 
   useEffect(() => {
     getRecentMatchesFromAPI()
@@ -114,8 +116,12 @@ export default function RecentMatches() {
           return match.winnerName.toLowerCase().includes(q) || match.loserName.toLowerCase().includes(q);
         })
         .map((match) => (
-        <View
+        <Pressable
           key={match.id}
+          onPress={() => router.push(`/match/${match.id}`)}
+        >
+        {({ pressed }) => (
+        <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -125,6 +131,7 @@ export default function RecentMatches() {
             marginBottom: 6,
             borderWidth: 1,
             borderColor: colors.border.primary,
+            opacity: pressed ? 0.7 : 1,
           }}
         >
           {/* Winner */}
@@ -181,6 +188,8 @@ export default function RecentMatches() {
             {timeAgo(match.confirmedAt)}
           </Text>
         </View>
+        )}
+        </Pressable>
         ))}
 
       {!loading && matches.length === 0 && (
