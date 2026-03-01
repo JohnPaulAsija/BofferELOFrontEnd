@@ -66,6 +66,12 @@ export default function Auth() {
 
       <Button title="Sign In" disabled={loading} loading={loading} onPress={signInWithEmail} />
 
+      <Pressable onPress={() => router.push("/forgot-password")} style={styles.forgotPassword}>
+        <Text style={[styles.forgotPasswordText, { color: colors.brand.amber }]}>
+          Forgot password?
+        </Text>
+      </Pressable>
+
       <View style={styles.divider}>
         <View style={[styles.dividerLine, { backgroundColor: colors.border.primary }]} />
         <Text style={[styles.dividerText, { color: colors.text.tertiary }]}>or</Text>
@@ -115,6 +121,14 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: Typography.fontSize.sm,
+  },
+  forgotPassword: {
+    alignItems: "flex-end",
+    paddingVertical: Spacing.sm,
+  },
+  forgotPasswordText: {
+    fontSize: Typography.fontSize.sm,
+    fontWeight: Typography.fontWeight.semibold,
   },
   registerButton: {
     borderWidth: 1,
