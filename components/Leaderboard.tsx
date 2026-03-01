@@ -16,10 +16,12 @@ export default function Leaderboard() {
   const router = useRouter();
 
   useEffect(() => {
+    let cancelled = false;
     getLeaderboardFromAPI()
-      .then(setLeaderboard)
-      .catch((err) => console.error('[Leaderboard] Failed to load leaderboard:', err))
-      .finally(() => setLeaderboardLoading(false));
+      .then((data) => { if (!cancelled) setLeaderboard(data); })
+      .catch((err) => { if (!cancelled) console.error('[Leaderboard] Failed to load leaderboard:', err); })
+      .finally(() => { if (!cancelled) setLeaderboardLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   return (

@@ -20,3 +20,9 @@ Issues below have been fixed and removed from `plans/code-review.md`.
 
 ### 10. `catch (err: any)` in `app/register.tsx` (partial — was Medium)
 **Resolution:** Changed `catch (err: any)` to `catch (err: unknown)` with proper `instanceof Error` narrowing in `app/register.tsx:169`. Other instances in `AppHeader.tsx`, `record-match.tsx`, and `UserProfile.tsx` remain unfixed.
+
+### 7. No Error Boundary (was Medium)
+**Resolution:** Created `components/ErrorBoundary.tsx` (class-based) and wrapped `<RootLayoutInner />` in `app/_layout.tsx`. Unhandled render exceptions now show a recovery screen with a "Try Again" button instead of a white screen crash.
+
+### 11. `UserProfile` component is overloaded (was Medium)
+**Resolution:** Decomposed `UserProfile.tsx` (510 lines, 14 useState hooks) into three focused components: `UserProfile.tsx` (profile fetch + layout), `ProfilePreferences.tsx` (preferences display/edit), and `MyMatchHistory.tsx` (tabbed match history). Each component now has a single responsibility.

@@ -38,17 +38,21 @@ export default function MatchDetailScreen() {
 
   useEffect(() => {
     if (!id) return;
+    let cancelled = false;
     setLoading(true);
     getMatchDetailFromAPI(id)
-      .then(setMatch)
+      .then((data) => { if (!cancelled) setMatch(data); })
       .catch((err: Error) => {
-        if (err.message.includes('404')) {
-          setError('Match not found.');
-        } else {
-          setError('Failed to load match. Please try again.');
+        if (!cancelled) {
+          if (err.message.includes('404')) {
+            setError('Match not found.');
+          } else {
+            setError('Failed to load match. Please try again.');
+          }
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [id]);
 
   const s = styles(isDark, colors);

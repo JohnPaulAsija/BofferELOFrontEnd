@@ -48,14 +48,17 @@ export default function RecordMatchScreen() {
       setAuthModal(true);
       return;
     }
+    let cancelled = false;
     const jwt = session.access_token;
     setUsersLoading(true);
     getUsersListFromAPI(jwt)
-      .then(setUsers)
-      .catch(() =>
-        setErrorModal({ visible: true, title: 'Error', message: 'Could not load players. Please try again.' })
-      )
-      .finally(() => setUsersLoading(false));
+      .then((data) => { if (!cancelled) setUsers(data); })
+      .catch(() => {
+        if (!cancelled)
+          setErrorModal({ visible: true, title: 'Error', message: 'Could not load players. Please try again.' });
+      })
+      .finally(() => { if (!cancelled) setUsersLoading(false); });
+    return () => { cancelled = true; };
   }, [loading, session]);
 
   const filteredUsers = users.filter((u) =>

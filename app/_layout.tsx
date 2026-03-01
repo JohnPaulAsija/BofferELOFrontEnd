@@ -2,6 +2,7 @@ import { getThemeColors } from "@/constants/theme";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import AppHeader from "@/components/AppHeader";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
@@ -36,7 +37,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <RootLayoutInner />
+        <ErrorBoundary>
+          <RootLayoutInner />
+        </ErrorBoundary>
       </AuthProvider>
     </ThemeProvider>
   );

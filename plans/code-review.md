@@ -27,9 +27,6 @@ Five+ components fire async requests in `useEffect` without cleanup. If the user
 
 **Note:** The React Compiler (enabled in `app.json`) may mitigate some re-render issues, but it does not handle async cleanup.
 
-### 7. No Error Boundary
-No `ErrorBoundary` component exists. An unhandled exception in any component will crash the entire app with a white screen. Wrap `<RootLayoutInner />` in `app/_layout.tsx` with one.
-
 ### 8. Backend error messages displayed directly to users
 `lib/apiInteractions.ts` throws errors with raw backend `detail` messages, and screens like `register.tsx` and `record-match.tsx` display them verbatim. This leaks implementation details. Map API errors to user-friendly messages.
 
@@ -43,9 +40,6 @@ Several places use `: any` defeating TypeScript's safety:
 - `components/UserProfile.tsx:210` — `catch (err: any)`
 
 Replace with `unknown` and narrow via `err instanceof Error`. (`app/register.tsx:169` was already fixed.)
-
-### 11. `UserProfile` component is overloaded
-`components/UserProfile.tsx` has 12+ `useState` hooks and 4+ `useEffect` blocks. This is a sign it should be decomposed into smaller components (e.g., `ProfileEditForm`, `MatchHistory`) or consolidated with `useReducer`.
 
 ---
 

@@ -7,10 +7,12 @@ export default function RecentMatches() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     getRecentMatchesFromAPI()
-      .then(setMatches)
-      .catch((err) => console.error('[RecentMatches] Failed to load matches:', err))
-      .finally(() => setLoading(false));
+      .then((data) => { if (!cancelled) setMatches(data); })
+      .catch((err) => { if (!cancelled) console.error('[RecentMatches] Failed to load matches:', err); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   return (

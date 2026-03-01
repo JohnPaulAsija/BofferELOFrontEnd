@@ -43,22 +43,28 @@ export default function UserProfileComponent({ userId, isOwnProfile = false }: P
   const colors = getThemeColors(isDark);
 
   useEffect(() => {
+    let cancelled = false;
     getUserProfileFromAPI(userId)
-      .then(setProfile)
+      .then((data) => { if (!cancelled) setProfile(data); })
       .catch((err) => {
-        console.error('[UserProfile] Failed to load profile:', err);
-        setError('Failed to load profile.');
+        if (!cancelled) {
+          console.error('[UserProfile] Failed to load profile:', err);
+          setError('Failed to load profile.');
+        }
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [userId]);
 
   useEffect(() => {
     if (!isOwnProfile) {
+      let cancelled = false;
       setUserMatchesLoading(true);
       getUserMatchesFromAPI(userId)
-        .then((data) => setUserMatches(data.matches))
-        .catch((err) => console.error('[UserProfile] Failed to load user matches:', err))
-        .finally(() => setUserMatchesLoading(false));
+        .then((data) => { if (!cancelled) setUserMatches(data.matches); })
+        .catch((err) => { if (!cancelled) console.error('[UserProfile] Failed to load user matches:', err); })
+        .finally(() => { if (!cancelled) setUserMatchesLoading(false); });
+      return () => { cancelled = true; };
     }
   }, [userId, isOwnProfile]);
 

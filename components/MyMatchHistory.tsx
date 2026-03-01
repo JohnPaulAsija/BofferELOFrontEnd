@@ -33,11 +33,13 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
 
   useEffect(() => {
     if (session) {
+      let cancelled = false;
       setMatchesLoading(true);
       getMyMatchesFromAPI(session.access_token)
-        .then(setMyMatches)
-        .catch((err) => console.error('[MyMatchHistory] Failed to load matches:', err))
-        .finally(() => setMatchesLoading(false));
+        .then((data) => { if (!cancelled) setMyMatches(data); })
+        .catch((err) => { if (!cancelled) console.error('[MyMatchHistory] Failed to load matches:', err); })
+        .finally(() => { if (!cancelled) setMatchesLoading(false); });
+      return () => { cancelled = true; };
     }
   }, [session]);
 

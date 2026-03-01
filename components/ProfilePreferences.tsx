@@ -97,9 +97,11 @@ export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpd
 
   useEffect(() => {
     if (isOwnProfile) {
+      let cancelled = false;
       getOptionsFromAPI()
-        .then(setOptions)
+        .then((data) => { if (!cancelled) setOptions(data); })
         .catch(() => {});
+      return () => { cancelled = true; };
     }
   }, [isOwnProfile]);
 
