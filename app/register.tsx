@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { ErrorModal } from "@/components/ui/error-modal";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import {
@@ -84,6 +84,27 @@ export default function RegisterScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<OptionsResponse | null>(null);
+  const [modal, setModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    variant: 'error' | 'info';
+    onAfterDismiss?: () => void;
+  }>({ visible: false, title: '', message: '', variant: 'error' });
+
+  function showError(title: string, message: string, onAfterDismiss?: () => void) {
+    setModal({ visible: true, title, message, variant: 'error', onAfterDismiss });
+  }
+
+  function showInfo(title: string, message: string, onAfterDismiss?: () => void) {
+    setModal({ visible: true, title, message, variant: 'info', onAfterDismiss });
+  }
+
+  function hideModal() {
+    const afterDismiss = modal.onAfterDismiss;
+    setModal(prev => ({ ...prev, visible: false, onAfterDismiss: undefined }));
+    afterDismiss?.();
+  }
 
   useEffect(() => {
     getOptionsFromAPI()
@@ -95,19 +116,19 @@ export default function RegisterScreen() {
 
   async function handleRegister() {
     if (!email.trim() || !password || !confirmPassword || !username.trim()) {
-      Alert.alert("Missing Fields", "Please fill in all required fields.");
+      showError("Missing Fields", "Please fill in all required fields.");
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert("Password Mismatch", "Passwords do not match.");
+      showError("Password Mismatch", "Passwords do not match.");
       return;
     }
     if (username.trim().length < 3) {
-      Alert.alert("Username Too Short", "Username must be at least 3 characters.");
+      showError("Username Too Short", "Username must be at least 3 characters.");
       return;
     }
     if (!termsAccepted) {
-      Alert.alert("Terms Required", "You must accept the Terms & Conditions to continue.");
+      showError("Terms Required", "You must accept the Terms & Conditions to continue.");
       return;
     }
 
@@ -119,17 +140,17 @@ export default function RegisterScreen() {
       } = await supabase.auth.signUp({ email: email.trim(), password });
 
       if (signUpError) {
-        Alert.alert("Sign Up Failed", signUpError.message);
+        showError("Sign Up Failed", signUpError.message);
         setLoading(false);
         return;
       }
 
       if (!session) {
-        Alert.alert(
+        showInfo(
           "Verify Your Email",
-          "Please check your inbox and verify your email address before signing in."
+          "Please check your inbox and verify your email address before signing in.",
+          () => router.replace("/auth")
         );
-        router.replace("/auth");
         return;
       }
 
@@ -146,13 +167,21 @@ export default function RegisterScreen() {
 
       router.replace("/");
     } catch (err: any) {
-      Alert.alert("Registration Failed", err.message || "An unexpected error occurred.");
+      showError("Registration Failed", err.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
+    <>
+      <ErrorModal
+        visible={modal.visible}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        onDismiss={hideModal}
+      />
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background.primary }}
       contentContainerStyle={styles.scrollContent}
@@ -285,6 +314,7 @@ export default function RegisterScreen() {
         </View>
       </View>
     </ScrollView>
+    </>
   );
 }
 

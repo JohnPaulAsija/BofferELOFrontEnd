@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Alert, AppState, Text, View, Pressable, StyleSheet } from "react-native";
+import { AppState, Text, View, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../lib/supabase";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { ErrorModal } from "./ui/error-modal";
 import { getThemeColors, Typography, Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -23,12 +24,17 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState({ visible: false, title: "", message: "" });
+
+  function showError(title: string, message: string) {
+    setModal({ visible: true, title, message });
+  }
 
   async function signInWithEmail() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      Alert.alert("Sign In Failed", error.message);
+      showError("Sign In Failed", error.message);
     } else {
       router.replace("/");
     }
@@ -37,6 +43,12 @@ export default function Auth() {
 
   return (
     <View style={styles.container}>
+      <ErrorModal
+        visible={modal.visible}
+        title={modal.title}
+        message={modal.message}
+        onDismiss={() => setModal(prev => ({ ...prev, visible: false }))}
+      />
       <Text style={[styles.title, { color: colors.text.primary }]}>Sign In</Text>
       <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
         Welcome back to BofferElo
