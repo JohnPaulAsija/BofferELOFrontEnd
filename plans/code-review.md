@@ -11,22 +11,6 @@
 
 ## Medium Severity
 
-### 5. Module-level side effect in `components/Auth.tsx`
-The `AppState.addEventListener` call at lines 11-17 runs at **module load time**, not inside a component. This means:
-- The listener is never cleaned up
-- It accumulates duplicate listeners if the module is re-evaluated
-- Should be moved into a `useEffect` with a cleanup return
-
-### 6. No `useEffect` cleanup / AbortController on async fetches
-Five+ components fire async requests in `useEffect` without cleanup. If the user navigates away mid-request, `setState` is called on an unmounted component. Affected files:
-- `components/Leaderboard.tsx`
-- `components/RecentMatches.tsx`
-- `components/UserProfile.tsx`
-- `app/record-match.tsx`
-- `app/match/[id].tsx`
-
-**Note:** The React Compiler (enabled in `app.json`) may mitigate some re-render issues, but it does not handle async cleanup.
-
 ### 8. Backend error messages displayed directly to users
 `lib/apiInteractions.ts` throws errors with raw backend `detail` messages, and screens like `register.tsx` and `record-match.tsx` display them verbatim. This leaks implementation details. Map API errors to user-friendly messages.
 
@@ -36,10 +20,9 @@ Every function in `lib/apiInteractions.ts` has `console.error(...)` calls that w
 ### 10. `any` type usage despite `strict: true` in tsconfig
 Several places use `: any` defeating TypeScript's safety:
 - `components/AppHeader.tsx` — icon component props (`{ style }: any`)
-- `app/record-match.tsx:76` — `catch (err: any)`
-- `components/UserProfile.tsx:210` — `catch (err: any)`
+- `app/record-match.tsx:79` — `catch (err: any)`
 
-Replace with `unknown` and narrow via `err instanceof Error`. (`app/register.tsx:169` was already fixed.)
+Replace with `unknown` and narrow via `err instanceof Error`. (`app/register.tsx:169` and `components/UserProfile.tsx` were already fixed.)
 
 ---
 

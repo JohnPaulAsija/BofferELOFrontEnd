@@ -25,4 +25,15 @@ Issues below have been fixed and removed from `plans/code-review.md`.
 **Resolution:** Created `components/ErrorBoundary.tsx` (class-based) and wrapped `<RootLayoutInner />` in `app/_layout.tsx`. Unhandled render exceptions now show a recovery screen with a "Try Again" button instead of a white screen crash.
 
 ### 11. `UserProfile` component is overloaded (was Medium)
-**Resolution:** Decomposed `UserProfile.tsx` (510 lines, 14 useState hooks) into three focused components: `UserProfile.tsx` (profile fetch + layout), `ProfilePreferences.tsx` (preferences display/edit), and `MyMatchHistory.tsx` (tabbed match history). Each component now has a single responsibility.
+**Resolution:** Decomposed `UserProfile.tsx` (510 lines, 14 useState hooks) into three focused components: `UserProfile.tsx` (profile fetch + layout), `ProfilePreferences.tsx` (preferences display/edit), and `MyMatchHistory.tsx` (tabbed match history). Each component now has a single responsibility. The `catch (err: any)` at the old line 210 was also eliminated in the process (issue 10 partial).
+
+### 5. Module-level side effect in `components/Auth.tsx` (was Medium)
+**Resolution:** `AppState.addEventListener` was removed entirely from `Auth.tsx`. The component is now a clean React function component with no module-level side effects, listeners, or global subscriptions.
+
+### 6. No `useEffect` cleanup on async fetches (was Medium)
+**Resolution:** All five affected components now use a `cancelled` boolean flag with a cleanup return in `useEffect`. State setters are guarded by `if (!cancelled)`, preventing `setState` calls on unmounted components. Fixed in:
+- `components/Leaderboard.tsx`
+- `components/RecentMatches.tsx`
+- `components/UserProfile.tsx`
+- `app/record-match.tsx`
+- `app/match/[id].tsx`
