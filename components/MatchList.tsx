@@ -123,7 +123,7 @@ export default function MatchList({
       )}
 
       {!loading && filtered.map((match) => (
-        <Pressable key={match.id} onPress={() => router.push(`/match/${match.id}`)}>
+        <Pressable key={match.id} onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id } })}>
           {({ pressed }) => (
             <View style={{
               flexDirection: 'row',

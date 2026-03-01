@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AppState, Text, View, Pressable, StyleSheet } from "react-native";
+import { Text, View, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../lib/supabase";
 import { Button } from "./ui/button";
@@ -7,14 +7,6 @@ import { Input } from "./ui/input";
 import { ErrorModal } from "./ui/error-modal";
 import { getThemeColors, Typography, Spacing, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
-
-AppState.addEventListener("change", (state) => {
-  if (state === "active") {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
 
 export default function Auth() {
   const router = useRouter();

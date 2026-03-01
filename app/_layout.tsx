@@ -5,12 +5,24 @@ import AppHeader from "@/components/AppHeader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
-import React from "react";
+import { AppState, View } from "react-native";
+import React, { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 function RootLayoutInner() {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background.primary }}>

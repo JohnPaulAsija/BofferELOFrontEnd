@@ -111,7 +111,7 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
             return (
               <Pressable
                 key={match.id}
-                onPress={() => router.push(`/match/${match.id}`)}
+                onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id } })}
               >
                 {({ pressed }) => (
                   <View style={{
