@@ -2,19 +2,10 @@
 
 ## Critical / High Severity
 
-### 1. `.env` committed to git
-The `.env` file contains Supabase credentials and API URLs and appears to be tracked in version control. Even though these are publishable keys, this is bad practice — `.env` should be in `.gitignore` with a `.env.example` for reference.
-
 ### 2. Missing input validation on registration (`app/register.tsx`)
 - **No email format validation** — only checks if non-empty
 - **No password strength requirements** — no minimum length, no complexity
 - **Insufficient username validation** — only checks length >= 3, no character restrictions
-
-### 3. Account enumeration via error messages
-Both `components/Auth.tsx` and `app/register.tsx` display raw Supabase error messages to the user. Different messages for "user not found" vs "wrong password" let attackers enumerate valid email addresses. Use a generic message like "Invalid email or password" instead.
-
-### 4. Loading state not reset on early return (`app/register.tsx:~154`)
-When signup succeeds but no session is returned (email verification required), `setLoading(false)` is never called — the button stays disabled permanently until the user force-closes the app.
 
 ---
 
@@ -49,10 +40,9 @@ Every function in `lib/apiInteractions.ts` has `console.error(...)` calls that w
 Several places use `: any` defeating TypeScript's safety:
 - `components/AppHeader.tsx` — icon component props (`{ style }: any`)
 - `app/record-match.tsx:76` — `catch (err: any)`
-- `app/register.tsx:169` — `catch (err: any)`
 - `components/UserProfile.tsx:210` — `catch (err: any)`
 
-Replace with `unknown` and narrow via `err instanceof Error`.
+Replace with `unknown` and narrow via `err instanceof Error`. (`app/register.tsx:169` was already fixed.)
 
 ### 11. `UserProfile` component is overloaded
 `components/UserProfile.tsx` has 12+ `useState` hooks and 4+ `useEffect` blocks. This is a sign it should be decomposed into smaller components (e.g., `ProfileEditForm`, `MatchHistory`) or consolidated with `useReducer`.
@@ -73,9 +63,6 @@ Replace with `unknown` and narrow via `err instanceof Error`.
 
 ### 15. Inconsistent error modal state shape
 `app/register.tsx` uses `{ variant, onAfterDismiss }` in its modal state while `components/UserProfile.tsx` uses a simpler shape. A shared `useErrorModal` hook would standardize this.
-
-### 16. No HTTPS enforcement at runtime
-Both `lib/supabase.ts` and `lib/apiInteractions.ts` read URLs from env vars without validating they start with `https://`. A typo or misconfiguration could silently downgrade to HTTP.
 
 ---
 
