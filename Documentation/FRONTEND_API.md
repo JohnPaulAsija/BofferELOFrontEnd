@@ -75,6 +75,7 @@ Returns the top 100 players sorted by ELO descending. No `Authorization` header 
 
 - Sorted by `elo` descending (highest first)
 - Maximum 100 entries
+- Only includes users who have completed setup via `POST /users/me/setup` — users who signed up but have not yet set a username are excluded
 - No email, role, or other PII returned
 - Response is cached server-side for **60 seconds** — the leaderboard may be up to 60 s stale after a match is confirmed
 
@@ -272,6 +273,7 @@ Authorization: Bearer <jwt>
 
 - Results are sorted alphabetically by `username`
 - The authenticated user is excluded (you cannot report a match against yourself)
+- Only includes users who have completed setup via `POST /users/me/setup` — users who have not yet set a username are excluded
 - Only `id` and `username` are returned — no ELO, role, or email data
 
 **Error codes**
@@ -400,7 +402,7 @@ Authorization: Bearer <jwt>
 }
 ```
 
-- `username` — minimum 3 characters, must be unique
+- `username` — 3–24 characters, letters/numbers/underscores/dashes only (`[a-zA-Z0-9_-]`), must be unique; leading/trailing whitespace is trimmed before validation
 - `accept_terms` — must be `true`
 
 **Response (200)**
@@ -419,7 +421,7 @@ Authorization: Bearer <jwt>
 | 400 | `accept_terms` is `false` |
 | 401 | Invalid or expired JWT |
 | 409 | Username already taken |
-| 422 | Missing `Authorization` header or malformed request body |
+| 422 | Missing `Authorization` header, malformed request body, or username fails validation (length or character rules) |
 
 ---
 
@@ -636,10 +638,63 @@ Authorization: Bearer <jwt>
 
 ---
 
-## Admin Endpoints (superAdmin only)
+## Admin Endpoints
 
-All admin endpoints require the authenticated user to have `role_id = 3` (superAdmin)
-in the `profiles` table.
+Most admin endpoints require `role_id = 3` (superAdmin). `GET /admin/matches/pending` is accessible to admin (`role_id = 2`) and superAdmin.
+
+### `GET /admin/matches/pending`
+Returns all pending (unconfirmed, unrejected) matches across the system, sorted by `reportedAt` descending. Accessible to admin and superAdmin.
+
+**Headers**
+```
+Authorization: Bearer <admin_or_superAdmin_jwt>
+```
+
+**Query parameters**
+
+| Parameter | Type | Default | Max | Description |
+|-----------|------|---------|-----|-------------|
+| `limit` | int | 50 | 100 | Matches per page |
+| `before` | string | — | — | ISO 8601 cursor; return matches reported before this timestamp |
+
+On the first page omit `before`. On subsequent pages pass `next_cursor` from the previous response.
+
+**Response (200)**
+```json
+{
+  "pending_matches": [
+    {
+      "id":              "<uuid>",
+      "winnerId":        "<uuid>",
+      "winnerName":      "<string>",
+      "loserId":         "<uuid>",
+      "loserName":       "<string>",
+      "winnerEloBefore": 1000,
+      "loserEloBefore":  984,
+      "eloChange":       16,
+      "reporterId":      "<uuid>",
+      "reporterName":    "<string>",
+      "reportedAt":      "<iso timestamp>",
+      "confirmedAt":     null
+    }
+  ],
+  "next_cursor": "<iso timestamp> | null"
+}
+```
+
+- `next_cursor` is `null` when there are no more pages
+- `confirmedAt` is always `null` (pending matches only)
+- Results are sorted by `reportedAt` descending (most recently reported first)
+
+**Error codes**
+
+| Code | Condition |
+|------|-----------|
+| 401 | Invalid or expired JWT |
+| 403 | Caller is not admin or superAdmin |
+| 422 | Missing `Authorization` header or invalid query params |
+
+---
 
 ### `POST /admin/seed/users`
 Creates test Supabase auth accounts with profiles. Useful for populating a dev/staging DB.
@@ -757,11 +812,11 @@ Authorization: Bearer <superAdmin_jwt>
 
 ## Roles
 
-| Role       | `role_id` | Can call admin endpoints |
-|------------|-----------|--------------------------|
-| user       | 1         | No                       |
-| admin      | 2         | No                       |
-| superAdmin | 3         | Yes                      |
+| Role       | `role_id` | Admin endpoint access |
+|------------|-----------|----------------------|
+| user       | 1         | None |
+| admin      | 2         | `GET /admin/matches/pending` only |
+| superAdmin | 3         | All admin endpoints |
 
 ---
 

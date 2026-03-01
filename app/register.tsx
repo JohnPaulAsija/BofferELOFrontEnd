@@ -21,6 +21,11 @@ import { getThemeColors, Spacing, Typography, BorderRadius } from "@/constants/t
 import { useTheme } from "@/contexts/ThemeContext";
 import { useErrorModal } from "@/hooks/useErrorModal";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_USERNAME_LENGTH = 24;
+
 function OptionPicker({
   label,
   options,
@@ -96,16 +101,31 @@ export default function RegisterScreen() {
   }, []);
 
   async function handleRegister() {
-    if (!email.trim() || !password || !confirmPassword || !username.trim()) {
+    const trimmedEmail = email.trim();
+    const trimmedUsername = username.trim();
+
+    if (!trimmedEmail || !password || !confirmPassword || !trimmedUsername) {
       showError("Missing Fields", "Please fill in all required fields.");
+      return;
+    }
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      showError("Invalid Email", "Please enter a valid email address.");
+      return;
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      showError("Password Too Short", `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
       return;
     }
     if (password !== confirmPassword) {
       showError("Password Mismatch", "Passwords do not match.");
       return;
     }
-    if (username.trim().length < 3) {
-      showError("Username Too Short", "Username must be at least 3 characters.");
+    if (trimmedUsername.length < 3 || trimmedUsername.length > MAX_USERNAME_LENGTH) {
+      showError("Invalid Username", `Username must be between 3 and ${MAX_USERNAME_LENGTH} characters.`);
+      return;
+    }
+    if (!USERNAME_REGEX.test(trimmedUsername)) {
+      showError("Invalid Username", "Username can only contain letters, numbers, underscores, and dashes.");
       return;
     }
     if (!termsAccepted) {
@@ -118,7 +138,7 @@ export default function RegisterScreen() {
       const {
         data: { session },
         error: signUpError,
-      } = await supabase.auth.signUp({ email: email.trim(), password });
+      } = await supabase.auth.signUp({ email: trimmedEmail, password });
 
       if (signUpError) {
         showError("Sign Up Failed", "Unable to create account. The email may already be in use, or the password does not meet requirements.");
@@ -136,7 +156,7 @@ export default function RegisterScreen() {
         return;
       }
 
-      await setupUserFromAPI(session.access_token, username.trim());
+      await setupUserFromAPI(session.access_token, trimmedUsername);
 
       if (gender || preferredGame || preferredWeapon || preferredShield) {
         await updatePreferencesFromAPI(session.access_token, {
