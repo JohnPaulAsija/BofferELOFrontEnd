@@ -136,13 +136,13 @@ export default function MatchList({
               borderColor: colors.border.primary,
               opacity: pressed ? 0.7 : 1,
             }}>
-              <Text style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.primary, textAlign: 'center' }}>
+              <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.primary, textAlign: 'center' }}>
                 {match.winnerName}
               </Text>
               <Text style={{ width: 28, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
                 vs
               </Text>
-              <Text style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.secondary, textAlign: 'center' }}>
+              <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.secondary, textAlign: 'center' }}>
                 {match.loserName}
               </Text>
               <Text style={{ width: 64, fontSize: 13, fontWeight: '700', color: colors.brand.amber, textAlign: 'center' }}>

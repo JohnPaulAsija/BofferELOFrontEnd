@@ -140,7 +140,7 @@ export default function Leaderboard() {
             </Text>
 
             {/* Warrior */}
-            <Text style={{
+            <Text numberOfLines={1} style={{
               flex: 1,
               fontSize: 15,
               fontWeight: '700',
