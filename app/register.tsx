@@ -305,7 +305,7 @@ export default function RegisterScreen() {
           <Button
             title="Create Account"
             onPress={handleRegister}
-            disabled={loading}
+            disabled={loading || !termsAccepted}
             loading={loading}
           />
           <Pressable onPress={() => router.push("/auth")} style={styles.signInLink}>
