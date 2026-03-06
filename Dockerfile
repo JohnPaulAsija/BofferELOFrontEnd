@@ -19,6 +19,11 @@ ENV EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL
 ENV EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
 
+# Fail fast if any required build arg is missing
+RUN if [ -z "$EXPO_PUBLIC_SUPABASE_URL" ]; then echo "ERROR: EXPO_PUBLIC_SUPABASE_URL build arg is not set" && exit 1; fi && \
+    if [ -z "$EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then echo "ERROR: EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY build arg is not set" && exit 1; fi && \
+    if [ -z "$EXPO_PUBLIC_API_URL" ]; then echo "ERROR: EXPO_PUBLIC_API_URL build arg is not set" && exit 1; fi
+
 RUN npx expo export --platform web
 
 # Stage 2: Serve with nginx
