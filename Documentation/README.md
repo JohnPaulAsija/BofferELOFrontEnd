@@ -31,20 +31,49 @@ The correct approach is **Cloud Build substitution variables**, which are inject
 
 ### Setting up Cloud Build
 
-1. Go to **Cloud Build → Triggers** in the Google Cloud Console.
-2. Create a new trigger (or edit an existing one) pointing at this repository.
-3. Set the **Cloud Build configuration file** to `cloudbuild.yaml`.
-4. Scroll to **Substitution variables** and add the following:
+Secrets are stored in **Google Cloud Secret Manager** and fetched by Cloud Build at build time. This is more reliable and secure than trigger substitution variables, which do not consistently propagate into the Docker build context.
 
-| Variable | Description |
-|---|---|
-| `_SUPABASE_URL` | Your Supabase project URL, e.g. `https://xyz.supabase.co` |
-| `_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable (anon) key |
-| `_API_URL` | The FastAPI backend URL, e.g. `https://your-api.run.app` |
-| `_SERVICE_NAME` | Cloud Run service name (default: `bofferelo-web`) |
-| `_REGION` | Cloud Run region (default: `us-central1`) |
+#### Step 1 — Create the secrets
 
-5. Save the trigger. On the next run, Cloud Build passes the substitution variables as `--build-arg` to Docker, baking them into the JS bundle at build time.
+Run these commands once in Cloud Shell or with the gcloud CLI (replace the values with your real credentials):
+
+```bash
+echo -n "https://your-project.supabase.co" | gcloud secrets create bofferelo-supabase-url --data-file=-
+echo -n "sb_publishable_your_key_here"      | gcloud secrets create bofferelo-supabase-key --data-file=-
+echo -n "https://your-api.run.app"          | gcloud secrets create bofferelo-api-url --data-file=-
+```
+
+#### Step 2 — Grant Cloud Build access to the secrets
+
+Find your Cloud Build service account (it looks like `PROJECT_NUMBER@cloudbuild.gserviceaccount.com`) and grant it the Secret Manager Secret Accessor role:
+
+```bash
+PROJECT_NUMBER=$(gcloud projects describe $(gcloud config get-value project) --format='value(projectNumber)')
+
+for SECRET in bofferelo-supabase-url bofferelo-supabase-key bofferelo-api-url; do
+  gcloud secrets add-iam-policy-binding $SECRET \
+    --member="serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor"
+done
+```
+
+#### Step 3 — Create the Cloud Build trigger
+
+1. Go to **Cloud Build → Triggers → Create Trigger**
+2. Point it at this repository and set branch to `main`
+3. Set the **Cloud Build configuration file** to `cloudbuild.yaml`
+4. The only substitution variables you need are the optional defaults already in the yaml:
+
+| Variable | Default | Description |
+|---|---|---|
+| `_SERVICE_NAME` | `bofferelo-web` | Cloud Run service name |
+| `_REGION` | `us-central1` | Cloud Run region |
+
+5. Save. Cloud Build will now fetch the three secrets directly from Secret Manager on each build.
+
+#### Why not substitution variables?
+
+Trigger substitution variables are available to Cloud Build steps as shell variables, but they do **not** reliably propagate into `docker build --build-arg` when the Docker build runs in its own process. Secret Manager secrets are injected directly into the build step's environment by Cloud Build itself, making them consistently available inside the Docker build.
 
 ### Manual build and deploy
 
