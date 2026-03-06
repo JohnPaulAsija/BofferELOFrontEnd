@@ -1,9 +1,14 @@
 substitutions:
-  _SUPABASE_URL: ""
-  _SUPABASE_PUBLISHABLE_KEY: ""
-  _API_URL: ""
+  # No defaults for secrets — Cloud Build will error here (not inside Docker)
+  # if these aren't set in the trigger's substitution variables.
+  _SUPABASE_URL: _REQUIRED_
+  _SUPABASE_PUBLISHABLE_KEY: _REQUIRED_
+  _API_URL: _REQUIRED_
   _SERVICE_NAME: bofferelo-web
   _REGION: us-central1
+
+options:
+  substitution_option: MUST_MATCH
 
 steps:
   - name: gcr.io/cloud-builders/docker
