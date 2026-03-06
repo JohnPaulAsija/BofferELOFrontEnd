@@ -1,0 +1,35 @@
+substitutions:
+  _SUPABASE_URL: ""
+  _SUPABASE_PUBLISHABLE_KEY: ""
+  _API_URL: ""
+  _SERVICE_NAME: bofferelo-web
+  _REGION: us-central1
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg=EXPO_PUBLIC_SUPABASE_URL=${_SUPABASE_URL}
+      - --build-arg=EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${_SUPABASE_PUBLISHABLE_KEY}
+      - --build-arg=EXPO_PUBLIC_API_URL=${_API_URL}
+      - --tag=gcr.io/$PROJECT_ID/${_SERVICE_NAME}
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - gcr.io/$PROJECT_ID/${_SERVICE_NAME}
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=gcr.io/$PROJECT_ID/${_SERVICE_NAME}
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+
+images:
+  - gcr.io/$PROJECT_ID/${_SERVICE_NAME}
