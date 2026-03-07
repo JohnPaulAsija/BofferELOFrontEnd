@@ -294,9 +294,11 @@ export default function RegisterScreen() {
               )}
             </View>
             <Text style={[styles.termsText, { color: colors.text.secondary }]}>
-              I agree that match reports and ELO ratings are public, that I will only report
-              matches I participated in, and that anonymous usage and crash data may be collected
-              via Google Firebase to improve app stability.
+              I agree that: my account data (email and password) is stored securely via Supabase;
+              my username is permanent and publicly visible; match reports, ELO ratings, win/loss
+              records, and any optional profile details (gender, preferred game, weapon, and shield)
+              are public and permanently recorded; confirmed matches cannot be removed; I will only
+              report matches I participated in; and my account is hosted on Google Cloud infrastructure.
             </Text>
           </Pressable>
         </View>
