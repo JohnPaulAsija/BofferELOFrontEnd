@@ -21,17 +21,19 @@ type Props = {
   loading: boolean;
   style?: ViewStyle;
   onConfirmSelected?: (ids: string[]) => Promise<void>;
+  onRejectSelected?: (ids: string[]) => Promise<void>;
 };
 
-export default function PendingMatchList({ matches, loading, style, onConfirmSelected }: Props) {
+export default function PendingMatchList({ matches, loading, style, onConfirmSelected, onRejectSelected }: Props) {
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
 
-  const selectable = !!onConfirmSelected;
+  const selectable = !!onConfirmSelected || !!onRejectSelected;
 
   const filtered = matches.filter((m) => {
     const q = search.toLowerCase();
@@ -70,13 +72,24 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
   };
 
   const handleConfirm = async () => {
-    if (!onConfirmSelected || selectedIds.size === 0 || confirming) return;
+    if (!onConfirmSelected || selectedIds.size === 0 || confirming || rejecting) return;
     setConfirming(true);
     try {
       await onConfirmSelected(Array.from(selectedIds));
       setSelectedIds(new Set());
     } finally {
       setConfirming(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!onRejectSelected || selectedIds.size === 0 || confirming || rejecting) return;
+    setRejecting(true);
+    try {
+      await onRejectSelected(Array.from(selectedIds));
+      setSelectedIds(new Set());
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -144,19 +157,19 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
             minWidth: 160,
           }}
         />
-        {selectable && (
+        {!!onConfirmSelected && (
           <TouchableOpacity
             onPress={handleConfirm}
-            disabled={selectedIds.size === 0 || confirming}
+            disabled={selectedIds.size === 0 || confirming || rejecting}
             activeOpacity={0.7}
             style={{
               paddingHorizontal: 14,
               paddingVertical: 10,
               borderRadius: 6,
-              backgroundColor: selectedIds.size === 0 || confirming
+              backgroundColor: selectedIds.size === 0 || confirming || rejecting
                 ? colors.border.secondary
                 : colors.brand.green,
-              opacity: selectedIds.size === 0 || confirming ? 0.6 : 1,
+              opacity: selectedIds.size === 0 || confirming || rejecting ? 0.6 : 1,
               minHeight: 44,
               justifyContent: 'center',
             }}
@@ -166,6 +179,32 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
             ) : (
               <Text style={{ color: colors.text.white, fontSize: 13, fontWeight: '700' }}>
                 {selectedIds.size > 0 ? `Confirm (${selectedIds.size})` : 'Confirm'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+        {!!onRejectSelected && (
+          <TouchableOpacity
+            onPress={handleReject}
+            disabled={selectedIds.size === 0 || confirming || rejecting}
+            activeOpacity={0.7}
+            style={{
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              borderRadius: 6,
+              backgroundColor: selectedIds.size === 0 || confirming || rejecting
+                ? colors.border.secondary
+                : colors.brand.red,
+              opacity: selectedIds.size === 0 || confirming || rejecting ? 0.6 : 1,
+              minHeight: 44,
+              justifyContent: 'center',
+            }}
+          >
+            {rejecting ? (
+              <ActivityIndicator size="small" color={colors.text.white} />
+            ) : (
+              <Text style={{ color: colors.text.white, fontSize: 13, fontWeight: '700' }}>
+                {selectedIds.size > 0 ? `Reject (${selectedIds.size})` : 'Reject'}
               </Text>
             )}
           </TouchableOpacity>

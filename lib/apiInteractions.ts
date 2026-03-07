@@ -1,6 +1,6 @@
-import { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch } from '@/lib/types';
+import { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch, BatchMatchResponse } from '@/lib/types';
 
-export type { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch };
+export type { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch, BatchMatchResponse };
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -223,17 +223,50 @@ export const reportMatchFromAPI = async (
   return data.match as ReportMatchResponse;
 };
 
-export const confirmMatchFromAPI = async (jwt: string, matchId: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/matches/${matchId}/confirm`, {
+export const confirmMatchesFromAPI = async (
+  jwt: string,
+  matchIds: string[]
+): Promise<BatchMatchResponse> => {
+  const response = await fetch(`${API_URL}/matches/confirm`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${jwt}` },
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ match_ids: matchIds }),
   });
   if (!response.ok) {
     const messages: Record<number, string> = {
-      400: 'Match is already confirmed or rejected.',
-      403: 'Not authorized to confirm this match.',
-      404: 'Match not found.',
+      401: 'Your session has expired. Please sign in again.',
+      404: 'User profile not found.',
+      422: 'Invalid request.',
+      429: 'Too many requests. Please wait before trying again.',
     };
-    throw new Error(messages[response.status] ?? 'Failed to confirm match. Please try again.');
+    throw new Error(messages[response.status] ?? 'Failed to confirm matches. Please try again.');
   }
+  return response.json();
+};
+
+export const rejectMatchesFromAPI = async (
+  jwt: string,
+  matchIds: string[]
+): Promise<BatchMatchResponse> => {
+  const response = await fetch(`${API_URL}/matches/reject`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ match_ids: matchIds }),
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      401: 'Your session has expired. Please sign in again.',
+      404: 'User profile not found.',
+      422: 'Invalid request.',
+      429: 'Too many requests. Please wait before trying again.',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to reject matches. Please try again.');
+  }
+  return response.json();
 };

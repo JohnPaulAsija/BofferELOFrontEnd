@@ -545,32 +545,55 @@ Authorization: Bearer <jwt>
 
 ---
 
-### `POST /matches/{match_id}/confirm`
-Confirms a pending match and atomically applies the pre-calculated ELO delta to both players' `elo`, `wins`, and `losses` in the `profiles` table. The confirmation and all profile updates are executed in a single database transaction — no partial ELO state is possible.
+### `POST /matches/confirm`
+Confirms one or more pending matches. Each confirmation atomically applies the pre-calculated ELO delta to both players' `elo`, `wins`, and `losses` in a single database transaction. Each match in the batch is processed independently — failures on some IDs do not prevent others from succeeding.
 
 **Headers**
 ```
 Authorization: Bearer <jwt>
 ```
 
-**Path parameters**
-- `match_id` — UUID of the match to confirm
+**Request body**
+```json
+{
+  "match_ids": ["<uuid>", "<uuid>"]
+}
+```
+- `match_ids` — array of match UUIDs to confirm; minimum 1, maximum 50 entries
 
 **Response (200)**
 ```json
 {
-  "match": {
-    "id": "<uuid>",
-    "confirmedAt":     "<iso timestamp>",
-    "confirmedById":   "<uuid>",
-    "confirmedByName": "<string>",
-    "eloChange":       16
-    /* ...other Matches columns */
-  }
+  "results": [
+    {
+      "match_id": "<uuid>",
+      "status":   "confirmed",
+      "match": {
+        "id":              "<uuid>",
+        "confirmedAt":     "<iso timestamp>",
+        "confirmedById":   "<uuid>",
+        "confirmedByName": "<string>",
+        "eloChange":       16
+      }
+    },
+    {
+      "match_id": "<uuid>",
+      "status":   "error",
+      "error":    "Match is already confirmed"
+    }
+  ],
+  "succeeded": 1,
+  "failed":    1
 }
 ```
 
-**Authorization rules**
+- Results are returned in the same order as the input `match_ids`
+- `status` is `"confirmed"` on success or `"error"` on failure
+- `match` is present only on success; `error` string is present only on failure
+- `succeeded` + `failed` always equals `len(match_ids)`
+- Caches (`leaderboard`, `matches`) are cleared once after the loop if at least one match was confirmed
+
+**Authorization rules** (applied per match)
 
 | Role | Can confirm? |
 |------|-------------|
@@ -578,45 +601,72 @@ Authorization: Bearer <jwt>
 | admin | Any unconfirmed match |
 | user | Only if participant (`winnerId` or `loserId`) **and** not the `reporterId` |
 
-**Error codes**
+**Per-match error values**
+
+| `error` string | Cause |
+|----------------|-------|
+| `"Match not found"` | No match row with that ID |
+| `"Match is already confirmed"` | `confirmedAt` is not null |
+| `"Match has been rejected"` | `rejectedAt` is not null |
+| `"Forbidden"` | Caller not authorized for this specific match |
+
+**Top-level error codes** (apply to the whole request, not per match)
 
 | Code | Condition |
 |------|-----------|
-| 400 | Match is already confirmed |
-| 400 | Match has been rejected |
 | 401 | Invalid or expired JWT, or malformed `Authorization` header |
-| 403 | Not authorized to confirm this match |
-| 404 | Match not found or user profile not found |
-| 422 | Missing `Authorization` header, or `match_id` is not a valid UUID |
-| 429 | Rate limit exceeded (20 requests/minute per user; admins/superAdmins exempt) |
+| 404 | User profile not found for the caller |
+| 422 | Missing `Authorization` header, malformed body, empty array, or array exceeds 50 entries |
+| 429 | Rate limit exceeded (20 requests/minute per user) |
 
 ---
 
-### `POST /matches/{match_id}/reject`
-Rejects a pending match. A rejected match can never be confirmed and has no effect on ELO or win/loss counts.
+### `POST /matches/reject`
+Rejects one or more pending matches. Rejected matches can never be confirmed and have no effect on ELO or win/loss counts. Each match is processed independently — failures on some IDs do not prevent others from succeeding.
 
 **Headers**
 ```
 Authorization: Bearer <jwt>
 ```
 
-**Path parameters**
-- `match_id` — UUID of the match to reject
+**Request body**
+```json
+{
+  "match_ids": ["<uuid>", "<uuid>"]
+}
+```
+- `match_ids` — array of match UUIDs to reject; minimum 1, maximum 50 entries
 
 **Response (200)**
 ```json
 {
-  "match": {
-    "id": "<uuid>",
-    "rejectedAt":     "<iso timestamp>",
-    "rejectedById":   "<uuid>",
-    "rejectedByName": "<string>"
-    /* ...other Matches columns */
-  }
+  "results": [
+    {
+      "match_id": "<uuid>",
+      "status":   "rejected",
+      "match": {
+        "id":             "<uuid>",
+        "rejectedAt":     "<iso timestamp>",
+        "rejectedById":   "<uuid>",
+        "rejectedByName": "<string>"
+      }
+    },
+    {
+      "match_id": "<uuid>",
+      "status":   "error",
+      "error":    "Match is already rejected"
+    }
+  ],
+  "succeeded": 1,
+  "failed":    1
 }
 ```
 
-**Authorization rules**
+- Results are returned in the same order as the input `match_ids`
+- `status` is `"rejected"` on success or `"error"` on failure
+- `match` is present only on success; `error` string is present only on failure
+
+**Authorization rules** (applied per match)
 
 | Role | Can reject? |
 |------|-------------|
@@ -624,17 +674,23 @@ Authorization: Bearer <jwt>
 | admin | Any unconfirmed, unrejected match |
 | user | If participant (`winnerId` or `loserId`) **or** the `reporterId` |
 
-**Error codes**
+**Per-match error values**
+
+| `error` string | Cause |
+|----------------|-------|
+| `"Match not found"` | No match row with that ID |
+| `"Match is already confirmed"` | `confirmedAt` is not null |
+| `"Match is already rejected"` | `rejectedAt` is not null |
+| `"Forbidden"` | Caller not authorized for this specific match |
+
+**Top-level error codes** (apply to the whole request, not per match)
 
 | Code | Condition |
 |------|-----------|
-| 400 | Match is already confirmed |
-| 400 | Match is already rejected |
 | 401 | Invalid or expired JWT, or malformed `Authorization` header |
-| 403 | Not authorized to reject this match |
-| 404 | Match not found or user profile not found |
-| 422 | Missing `Authorization` header, or `match_id` is not a valid UUID |
-| 429 | Rate limit exceeded (20 requests/minute per user; admins/superAdmins exempt) |
+| 404 | User profile not found for the caller |
+| 422 | Missing `Authorization` header, malformed body, empty array, or array exceeds 50 entries |
+| 429 | Rate limit exceeded (20 requests/minute per user) |
 
 ---
 

@@ -61,6 +61,7 @@ export type UserMatch = {
   eloChange: number;
   confirmedAt: string | null;
   reportedAt?: string;
+  reporterId?: string;
 };
 
 export type MyMatchesResponse = {
@@ -81,4 +82,26 @@ export type PendingMatch = {
   reporterName: string;
   reportedAt: string;
   confirmedAt: null;
+};
+
+export type BatchMatchResultItem = {
+  match_id: string;
+  status: 'confirmed' | 'rejected' | 'error';
+  match?: {
+    id: string;
+    confirmedAt?: string;
+    confirmedById?: string;
+    confirmedByName?: string;
+    rejectedAt?: string;
+    rejectedById?: string;
+    rejectedByName?: string;
+    eloChange?: number;
+  };
+  error?: string;
+};
+
+export type BatchMatchResponse = {
+  results: BatchMatchResultItem[];
+  succeeded: number;
+  failed: number;
 };

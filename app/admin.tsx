@@ -6,14 +6,36 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ErrorModal } from '@/components/ui/error-modal';
 import {
-  confirmMatchFromAPI,
+  confirmMatchesFromAPI,
+  rejectMatchesFromAPI,
   getPendingMatchesFromAPI,
   getUsersListFromAPI,
   PendingMatch,
   UserListEntry,
+  BatchMatchResponse,
 } from '@/lib/apiInteractions';
 import PendingMatchList from '@/components/PendingMatchList';
 import AdminReportMatch from '@/components/AdminReportMatch';
+
+function buildBatchErrorMessage(
+  response: BatchMatchResponse,
+  action: 'confirm' | 'reject'
+): string | null {
+  if (response.failed === 0) return null;
+  const errorItems = response.results.filter((r) => r.status === 'error');
+  if (errorItems.length === 1) {
+    return `Failed to ${action} match: ${errorItems[0].error}`;
+  }
+  const grouped: Record<string, number> = {};
+  for (const item of errorItems) {
+    const msg = item.error ?? 'Unknown error';
+    grouped[msg] = (grouped[msg] ?? 0) + 1;
+  }
+  const lines = Object.entries(grouped).map(
+    ([msg, count]) => `${count} match${count > 1 ? 'es' : ''}: ${msg}`
+  );
+  return `Failed to ${action} ${response.failed} match${response.failed > 1 ? 'es' : ''}:\n${lines.join('\n')}`;
+}
 
 export default function AdminScreen() {
   const { isDark } = useTheme();
@@ -24,7 +46,7 @@ export default function AdminScreen() {
   const [pendingMatches, setPendingMatches] = useState<PendingMatch[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(true);
   const [users, setUsers] = useState<UserListEntry[]>([]);
-  const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadPendingMatches = useCallback((jwt: string) => {
     setMatchesLoading(true);
@@ -61,14 +83,30 @@ export default function AdminScreen() {
   }, [loading, session, isAdmin]);
 
   const handleConfirmSelected = async (ids: string[]) => {
-    const results = await Promise.allSettled(
-      ids.map((id) => confirmMatchFromAPI(session!.access_token, id))
-    );
-    const succeeded = ids.filter((_, i) => results[i].status === 'fulfilled');
-    const failed = results.length - succeeded.length;
-    setPendingMatches((prev) => prev.filter((m) => !succeeded.includes(m.id)));
-    if (failed > 0) {
-      setConfirmError(`${failed} match${failed > 1 ? 'es' : ''} failed to confirm.`);
+    try {
+      const response = await confirmMatchesFromAPI(session!.access_token, ids);
+      const succeededIds = response.results
+        .filter((r) => r.status === 'confirmed')
+        .map((r) => r.match_id);
+      setPendingMatches((prev) => prev.filter((m) => !succeededIds.includes(m.id)));
+      const errorMsg = buildBatchErrorMessage(response, 'confirm');
+      if (errorMsg) setActionError(errorMsg);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to confirm matches.');
+    }
+  };
+
+  const handleRejectSelected = async (ids: string[]) => {
+    try {
+      const response = await rejectMatchesFromAPI(session!.access_token, ids);
+      const succeededIds = response.results
+        .filter((r) => r.status === 'rejected')
+        .map((r) => r.match_id);
+      setPendingMatches((prev) => prev.filter((m) => !succeededIds.includes(m.id)));
+      const errorMsg = buildBatchErrorMessage(response, 'reject');
+      if (errorMsg) setActionError(errorMsg);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to reject matches.');
     }
   };
 
@@ -94,16 +132,17 @@ export default function AdminScreen() {
         />
       )}
       <ErrorModal
-        visible={!!confirmError}
-        title="Confirm Error"
-        message={confirmError ?? ''}
-        onDismiss={() => setConfirmError(null)}
+        visible={!!actionError}
+        title="Error"
+        message={actionError ?? ''}
+        onDismiss={() => setActionError(null)}
         variant="error"
       />
       <PendingMatchList
         matches={pendingMatches}
         loading={matchesLoading}
         onConfirmSelected={handleConfirmSelected}
+        onRejectSelected={handleRejectSelected}
       />
     </ScrollView>
   );

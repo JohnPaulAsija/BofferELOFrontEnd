@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, ActivityIndicator, Pressable, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getMyMatchesFromAPI, MyMatchesResponse, UserMatch } from '@/lib/apiInteractions';
+import { getMyMatchesFromAPI, confirmMatchesFromAPI, rejectMatchesFromAPI, MyMatchesResponse, UserMatch } from '@/lib/apiInteractions';
 import { getThemeColors, Typography } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { ErrorModal } from '@/components/ui/error-modal';
 
 type MyMatchHistoryProps = {
   userId: string;
@@ -25,6 +26,8 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
   const [myMatches, setMyMatches] = useState<MyMatchesResponse | null>(null);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'confirmed' | 'unconfirmed'>('confirmed');
+  const [actionLoading, setActionLoading] = useState<Record<string, 'confirming' | 'rejecting'>>({});
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
@@ -43,6 +46,56 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
     }
   }, [session]);
 
+  const handleConfirmMatch = async (matchId: string) => {
+    if (!session) return;
+    setActionLoading((prev) => ({ ...prev, [matchId]: 'confirming' }));
+    try {
+      const response = await confirmMatchesFromAPI(session.access_token, [matchId]);
+      if (response.succeeded > 0) {
+        setMyMatches((prev) => prev ? {
+          ...prev,
+          unconfirmed: prev.unconfirmed.filter((m) => m.id !== matchId),
+        } : prev);
+      } else {
+        const errItem = response.results.find((r) => r.status === 'error');
+        setActionError(errItem?.error ?? 'Failed to confirm match.');
+      }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to confirm match.');
+    } finally {
+      setActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[matchId];
+        return next;
+      });
+    }
+  };
+
+  const handleRejectMatch = async (matchId: string) => {
+    if (!session) return;
+    setActionLoading((prev) => ({ ...prev, [matchId]: 'rejecting' }));
+    try {
+      const response = await rejectMatchesFromAPI(session.access_token, [matchId]);
+      if (response.succeeded > 0) {
+        setMyMatches((prev) => prev ? {
+          ...prev,
+          unconfirmed: prev.unconfirmed.filter((m) => m.id !== matchId),
+        } : prev);
+      } else {
+        const errItem = response.results.find((r) => r.status === 'error');
+        setActionError(errItem?.error ?? 'Failed to reject match.');
+      }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to reject match.');
+    } finally {
+      setActionLoading((prev) => {
+        const next = { ...prev };
+        delete next[matchId];
+        return next;
+      });
+    }
+  };
+
   return (
     <View style={{
       borderWidth: 1,
@@ -55,6 +108,13 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
       marginTop: 16,
       overflow: 'hidden',
     }}>
+      <ErrorModal
+        visible={!!actionError}
+        title="Error"
+        message={actionError ?? ''}
+        onDismiss={() => setActionError(null)}
+        variant="error"
+      />
       {/* Tab bar */}
       <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border.primary }}>
         {(['confirmed', 'unconfirmed'] as const).map((tab) => {
@@ -164,6 +224,48 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
                       <Text style={{ fontSize: 12, color: colors.text.tertiary, minWidth: 56, textAlign: 'right' }}>
                         {timestamp}
                       </Text>
+                    )}
+
+                    {/* Confirm/Reject buttons for pending matches */}
+                    {activeTab === 'unconfirmed' && (
+                      <View style={{ flexDirection: 'row', gap: 6, marginLeft: 8 }}>
+                        {match.reporterId !== userId && (
+                          <TouchableOpacity
+                            onPress={(e) => { e.stopPropagation(); handleConfirmMatch(match.id); }}
+                            disabled={!!actionLoading[match.id]}
+                            style={{
+                              paddingHorizontal: 10,
+                              paddingVertical: 6,
+                              borderRadius: 6,
+                              backgroundColor: actionLoading[match.id] ? colors.border.secondary : colors.brand.green,
+                              opacity: actionLoading[match.id] ? 0.6 : 1,
+                            }}
+                          >
+                            {actionLoading[match.id] === 'confirming' ? (
+                              <ActivityIndicator size="small" color={colors.text.white} />
+                            ) : (
+                              <Text style={{ color: colors.text.white, fontSize: 12, fontWeight: '700' }}>Confirm</Text>
+                            )}
+                          </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                          onPress={(e) => { e.stopPropagation(); handleRejectMatch(match.id); }}
+                          disabled={!!actionLoading[match.id]}
+                          style={{
+                            paddingHorizontal: 10,
+                            paddingVertical: 6,
+                            borderRadius: 6,
+                            backgroundColor: actionLoading[match.id] ? colors.border.secondary : colors.brand.red,
+                            opacity: actionLoading[match.id] ? 0.6 : 1,
+                          }}
+                        >
+                          {actionLoading[match.id] === 'rejecting' ? (
+                            <ActivityIndicator size="small" color={colors.text.white} />
+                          ) : (
+                            <Text style={{ color: colors.text.white, fontSize: 12, fontWeight: '700' }}>Reject</Text>
+                          )}
+                        </TouchableOpacity>
+                      </View>
                     )}
                   </View>
                 )}
