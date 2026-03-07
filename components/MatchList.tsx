@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, TextInput, Pressable, ViewStyle } from 'react-native';
+import { View, Text, ActivityIndicator, TextInput, Pressable, ViewStyle, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Match } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
@@ -39,6 +39,8 @@ export default function MatchList({
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 600;
 
   const filtered = searchable
     ? matches.filter((m) => {
@@ -109,12 +111,12 @@ export default function MatchList({
           <Text style={{ flex: 1, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             LOSER
           </Text>
-          <Text style={{ width: 64, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
+          {!isCompact && <Text style={{ width: 64, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             ELO SWING
-          </Text>
-          <Text style={{ width: 56, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'right' }}>
+          </Text>}
+          {!isCompact && <Text style={{ width: 56, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'right' }}>
             WHEN
-          </Text>
+          </Text>}
         </View>
       )}
 
@@ -145,12 +147,12 @@ export default function MatchList({
               <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.secondary, textAlign: 'center' }}>
                 {match.loserName}
               </Text>
-              <Text style={{ width: 64, fontSize: 13, fontWeight: '700', color: colors.brand.amber, textAlign: 'center' }}>
+              {!isCompact && <Text style={{ width: 64, fontSize: 13, fontWeight: '700', color: colors.brand.amber, textAlign: 'center' }}>
                 +{match.eloChange}
-              </Text>
-              <Text style={{ width: 56, fontSize: 12, color: colors.text.tertiary, textAlign: 'right' }}>
+              </Text>}
+              {!isCompact && <Text style={{ width: 56, fontSize: 12, color: colors.text.tertiary, textAlign: 'right' }}>
                 {timeAgo(match.confirmedAt)}
-              </Text>
+              </Text>}
             </View>
           )}
         </Pressable>
