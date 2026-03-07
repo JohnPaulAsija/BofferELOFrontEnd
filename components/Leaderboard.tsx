@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, TextInput, Pressable } from 'react-native';
+import { View, Text, ActivityIndicator, TextInput, Pressable, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getLeaderboardFromAPI, LeaderboardEntry } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
@@ -14,6 +14,7 @@ export default function Leaderboard() {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
+  const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
 
   useEffect(() => {
     let cancelled = false;
@@ -87,15 +88,15 @@ export default function Leaderboard() {
           <Text style={{ flex: 1, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             WARRIOR
           </Text>
-          <Text style={{ width: 56, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center', marginRight: 16 }}>
+          {!isMobile && <Text style={{ width: 56, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center', marginRight: 16 }}>
             ELO
-          </Text>
-          <Text style={{ width: 60, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center', marginRight: 16 }}>
+          </Text>}
+          {!isMobile && <Text style={{ width: 60, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center', marginRight: 16 }}>
             W/L
-          </Text>
-          <Text style={{ width: 64, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
+          </Text>}
+          {!isMobile && <Text style={{ width: 64, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             WIN RATE
-          </Text>
+          </Text>}
         </View>
       )}
 
@@ -151,7 +152,7 @@ export default function Leaderboard() {
             </Text>
 
             {/* ELO */}
-            <Text style={{
+            {!isMobile && <Text style={{
               width: 56,
               fontSize: 15,
               fontWeight: '700',
@@ -160,10 +161,10 @@ export default function Leaderboard() {
               marginRight: 16,
             }}>
               {entry.elo}
-            </Text>
+            </Text>}
 
             {/* W/L */}
-            <Text style={{
+            {!isMobile && <Text style={{
               width: 60,
               fontSize: 13,
               color: colors.text.secondary,
@@ -171,17 +172,17 @@ export default function Leaderboard() {
               marginRight: 16,
             }}>
               {entry.wins}W/{entry.losses}L
-            </Text>
+            </Text>}
 
             {/* Win Rate */}
-            <Text style={{
+            {!isMobile && <Text style={{
               width: 64,
               fontSize: 13,
               color: colors.text.secondary,
               textAlign: 'center',
             }}>
               {winRate}%
-            </Text>
+            </Text>}
           </Pressable>
         );
         })}
