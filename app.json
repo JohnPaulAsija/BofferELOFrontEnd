@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "supabasetest",
+    "name": "BofferElo",
     "slug": "boffer-elo",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -23,7 +23,7 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.svg"
     },
     "plugins": [
       "expo-router",
