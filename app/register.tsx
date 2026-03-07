@@ -294,8 +294,9 @@ export default function RegisterScreen() {
               )}
             </View>
             <Text style={[styles.termsText, { color: colors.text.secondary }]}>
-              I agree that match reports and ELO ratings are public, and that I will only report
-              matches I participated in.
+              I agree that match reports and ELO ratings are public, that I will only report
+              matches I participated in, and that anonymous usage and crash data may be collected
+              via Google Firebase to improve app stability.
             </Text>
           </Pressable>
         </View>
