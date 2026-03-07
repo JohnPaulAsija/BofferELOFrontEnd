@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { ErrorModal } from "@/components/ui/error-modal";
+import { TermsModal } from "@/components/ui/terms-modal";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import {
@@ -88,6 +89,7 @@ export default function RegisterScreen() {
   const [preferredShield, setPreferredShield] = useState<string | null>(null);
 
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState<OptionsResponse | null>(null);
   const { modal, showError, showInfo, hideModal } = useErrorModal();
@@ -184,6 +186,10 @@ export default function RegisterScreen() {
         message={modal.message}
         variant={modal.variant}
         onDismiss={hideModal}
+      />
+      <TermsModal
+        visible={termsModalVisible}
+        onDismiss={() => setTermsModalVisible(false)}
       />
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background.primary }}
@@ -293,13 +299,17 @@ export default function RegisterScreen() {
                 <Text style={[styles.checkmark, { color: colors.text.white }]}>✓</Text>
               )}
             </View>
-            <Text style={[styles.termsText, { color: colors.text.secondary }]}>
-              I agree that: my account data (email and password) is stored securely via Supabase;
-              my username is permanent and publicly visible; match reports, ELO ratings, win/loss
-              records, and any optional profile details (gender, preferred game, weapon, and shield)
-              are public and permanently recorded; confirmed matches cannot be removed; I will only
-              report matches I participated in; and my account is hosted on Google Cloud infrastructure.
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.termsText, { color: colors.text.secondary }]}>
+                I agree to the{" "}
+                <Text
+                  onPress={() => setTermsModalVisible(true)}
+                  style={{ color: colors.brand.amber, fontWeight: "600", textDecorationLine: "underline" }}
+                >
+                  Terms and Conditions
+                </Text>
+              </Text>
+            </View>
           </Pressable>
         </View>
 
