@@ -49,6 +49,7 @@ function RootLayoutInner() {
 <Stack.Screen name="admin" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen name="match/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="about" options={{ headerShown: false }} />
         <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
         <Stack.Screen name="reset-password" options={{ headerShown: false }} />
       </Stack>

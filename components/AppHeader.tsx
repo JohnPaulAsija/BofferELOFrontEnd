@@ -85,6 +85,16 @@ export default function AppHeader() {
             </Pressable>
           )}
 
+          {/* About */}
+          <Pressable
+            style={[styles.button, styles.outlineButton, { borderColor: colors.border.secondary }]}
+            onPress={() => router.push('/about')}
+            accessibilityLabel="About BofferElo"
+            accessibilityRole="button"
+          >
+            <Text style={[styles.buttonText, { color: colors.text.secondary }]}>About</Text>
+          </Pressable>
+
           {/* Theme Toggle */}
           <Pressable
             style={[styles.button, styles.outlineButton, { borderColor: colors.border.secondary }]}

@@ -247,6 +247,22 @@ export const confirmMatchesFromAPI = async (
   return response.json();
 };
 
+// TODO: Add GET /version endpoint to the FastAPI backend.
+// Expected response shape: { frontend_version: string, backend_version: string, api_version: string }
+export type VersionResponse = {
+  version: string;
+};
+
+export const getBackendVersionFromAPI = async (): Promise<VersionResponse> => {
+  const response = await fetch(`${API_URL}/version`);
+  if (!response.ok) {
+    const err = new Error(`HTTP ${response.status}`);
+    if (__DEV__) console.error('[getBackendVersionFromAPI] Request failed:', err.message);
+    throw err;
+  }
+  return response.json();
+};
+
 export const rejectMatchesFromAPI = async (
   jwt: string,
   matchIds: string[]
