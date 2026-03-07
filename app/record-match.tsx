@@ -114,7 +114,7 @@ export default function RecordMatchScreen() {
         title="Match Reported!"
         message={
           successResult
-            ? `${successResult.winner_username} defeated ${successResult.loser_username} (+${successResult.elo_change} ELO). The match is pending confirmation.`
+            ? `${successResult.winnerName} defeated ${successResult.loserName} (+${successResult.eloChange} ELO). The match is pending confirmation.`
             : ''
         }
         variant="info"

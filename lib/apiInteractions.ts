@@ -159,11 +159,17 @@ export const getUsersListFromAPI = async (jwt: string): Promise<UserListEntry[]>
 
 export type ReportMatchResponse = {
   id: string;
-  winner_id: string;
-  winner_username: string;
-  loser_id: string;
-  loser_username: string;
-  elo_change: number;
+  winnerId: string;
+  winnerName: string;
+  loserId: string;
+  loserName: string;
+  winnerEloBefore: number;
+  loserEloBefore: number;
+  eloChange: number;
+  reporterId: string;
+  reporterName: string;
+  reportedAt: string;
+  confirmedAt: string | null;
 };
 
 export const getMatchDetailFromAPI = async (matchId: string): Promise<MatchDetail> => {
@@ -213,5 +219,21 @@ export const reportMatchFromAPI = async (
     };
     throw new Error(messages[response.status] ?? 'Failed to report match. Please try again.');
   }
-  return response.json();
+  const data = await response.json();
+  return data.match as ReportMatchResponse;
+};
+
+export const confirmMatchFromAPI = async (jwt: string, matchId: string): Promise<void> => {
+  const response = await fetch(`${API_URL}/matches/${matchId}/confirm`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      400: 'Match is already confirmed or rejected.',
+      403: 'Not authorized to confirm this match.',
+      404: 'Match not found.',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to confirm match. Please try again.');
+  }
 };
