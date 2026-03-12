@@ -6,7 +6,7 @@ Show the projected ELO change to the user on the record-match screen after they 
 
 ## Assumptions / Prerequisites
 
-- The backend's K-factor is known and stable. It must be added to `.env` as `EXPO_PUBLIC_ELO_K_FACTOR`.
+- The backend's K-factor is known and stable. It is defined in `constants/elo.ts` as `kFactor`.
 - `getUserProfileFromAPI` (`GET /users/{userId}`) is public — no JWT required. This is already the case in the codebase (`lib/apiInteractions.ts:113`).
 - The logged-in user's current ELO is not yet available in the record-match screen. It must be fetched.
 
@@ -30,27 +30,16 @@ This will be implemented in a small utility function.
 
 ## Changes Required
 
-### 1. `.env`
+### 1. New utility: `lib/eloPreview.ts`
 
-Add the K-factor environment variable:
-
-```
-EXPO_PUBLIC_ELO_K_FACTOR=32
-```
-
-The value must match whatever K-factor the backend uses.
-
----
-
-### 2. New utility: `lib/eloPreview.ts`
-
-Create a pure function that takes both players' ELOs and returns the projected delta.
+Create a pure function that takes both players' ELOs and returns the projected delta. Import `kFactor` from `constants/elo.ts`.
 
 ```typescript
+import { kFactor } from '../constants/elo';
+
 export function calculateEloDelta(winnerElo: number, loserElo: number): number {
-  const K = Number(process.env.EXPO_PUBLIC_ELO_K_FACTOR ?? 32);
   const expected = 1 / (1 + Math.pow(10, (loserElo - winnerElo) / 400));
-  return Math.round(K * (1 - expected));
+  return Math.round(kFactor * (1 - expected));
 }
 ```
 
@@ -156,8 +145,8 @@ submit
 
 | File | Change |
 |------|--------|
-| `.env` | Add `EXPO_PUBLIC_ELO_K_FACTOR` |
-| `lib/eloPreview.ts` | New — ELO delta utility function |
+| `constants/elo.ts` | Add `export` to `kFactor` declaration |
+| `lib/eloPreview.ts` | New — ELO delta utility function (imports `kFactor`) |
 | `app/record-match.tsx` | Fetch both ELOs, compute preview, render banner |
 
 No backend changes required.
@@ -166,6 +155,6 @@ No backend changes required.
 
 ## Risks / Notes
 
-- If the backend uses a different K-factor than `.env`, the preview will be slightly off. The disclaimer note in the UI covers this.
+- If the backend uses a different K-factor than what's in `constants/elo.ts`, the preview will be slightly off. The disclaimer note in the UI covers this.
 - The opponent profile fetch adds a small network round-trip on selection. It uses the public `GET /users/{id}` endpoint so no JWT is required and it should be fast.
 - If the opponent profile fetch fails, `eloPreview` stays `null` and no banner is shown — a safe fallback.
