@@ -76,7 +76,7 @@ export const BofferEloColorsDark = {
   text: {
     primary: '#f1f5f9',    // Slate 100
     secondary: '#94a3b8',  // Slate 400
-    tertiary: '#64748b',   // Slate 500
+    tertiary: '#94a3b8',   // Slate 400
     white: '#ffffff',
   },
 
@@ -120,7 +120,7 @@ export const BofferEloColorsLight = {
   text: {
     primary: '#0f172a',    // Slate 900
     secondary: '#475569',  // Slate 600
-    tertiary: '#94a3b8',   // Slate 400
+    tertiary: '#475569',   // Slate 600
     white: '#ffffff',
   },
 
@@ -165,7 +165,7 @@ export const BofferEloColors = {
   text: {
     primary: '#f1f5f9',    // Slate 100
     secondary: '#94a3b8',  // Slate 400
-    tertiary: '#64748b',   // Slate 500
+    tertiary: '#94a3b8',   // Slate 400
     white: '#ffffff',
   },
 

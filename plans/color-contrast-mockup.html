@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>text.tertiary Contrast Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; padding: 32px; background: #e2e8f0; }
+  h1 { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 24px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .row { display: flex; gap: 24px; margin-bottom: 32px; }
+  .panel { flex: 1; border-radius: 12px; padding: 20px; }
+  .panel-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 16px; }
+
+  /* Light panels */
+  .light { background: #f8fafc; border: 1px solid #cbd5e1; }
+  .light .panel-label { color: #0f172a; }
+
+  /* Dark panels */
+  .dark { background: #0f172a; border: 1px solid #334155; }
+  .dark .panel-label { color: #f1f5f9; }
+
+  /* Stat boxes */
+  .stat-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .stat-box { flex: 1; border-radius: 8px; padding: 12px; text-align: center; border: 1px solid; }
+  .light .stat-box { background: #f8fafc; border-color: #cbd5e1; }
+  .dark .stat-box  { background: #0f172a; border-color: #334155; }
+  .stat-value { font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 11px; font-weight: 600; margin-top: 2px; }
+
+  /* Table headers */
+  .table-header { display: flex; gap: 4px; padding: 6px 0; border-bottom: 1px solid; margin-bottom: 8px; }
+  .light .table-header { border-color: #cbd5e1; }
+  .dark .table-header  { border-color: #334155; }
+  .col { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .col-rank { width: 40px; text-align: center; }
+  .col-name { flex: 1; }
+  .col-elo  { width: 60px; text-align: center; }
+  .col-wins { width: 50px; text-align: center; }
+  .col-wr   { width: 56px; text-align: right; }
+
+  /* Profile labels */
+  .pref-row { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .pref-item { display: flex; flex-direction: column; gap: 2px; }
+  .pref-label { font-size: 13px; font-weight: 600; }
+  .pref-value-light { font-size: 14px; color: #0f172a; }
+  .pref-value-dark  { font-size: 14px; color: #f1f5f9; }
+
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; border-radius: 4px; padding: 2px 6px; margin-bottom: 8px; }
+  .badge-before { background: #fee2e2; color: #dc2626; }
+  .badge-after  { background: #dcfce7; color: #16a34a; }
+
+  .ratio { font-size: 10px; font-weight: 600; margin-top: 2px; }
+  .ratio-fail { color: #dc2626; }
+  .ratio-pass { color: #16a34a; }
+
+  .section-title { font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 8px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .divider { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<h1>text.tertiary — Before vs After</h1>
+
+<!-- LIGHT MODE -->
+<div class="row">
+
+  <!-- Light Before -->
+  <div class="panel light">
+    <div class="panel-label">Light Mode</div>
+    <span class="badge badge-before">BEFORE — #94a3b8 — 2.28:1 ✗</span>
+
+    <div class="section-title">Stat Boxes</div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-value" style="color:#d97706">1,204</div>
+        <div class="stat-label" style="color:#94a3b8">ELO</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#22c55e">42</div>
+        <div class="stat-label" style="color:#94a3b8">WINS</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#dc2626">18</div>
+        <div class="stat-label" style="color:#94a3b8">LOSSES</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#0f172a">70%</div>
+        <div class="stat-label" style="color:#94a3b8">WIN RATE</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Table Headers</div>
+    <div class="table-header">
+      <span class="col col-rank" style="color:#94a3b8">#</span>
+      <span class="col col-name" style="color:#94a3b8">PLAYER</span>
+      <span class="col col-elo"  style="color:#94a3b8">ELO</span>
+      <span class="col col-wins" style="color:#94a3b8">W/L</span>
+      <span class="col col-wr"   style="color:#94a3b8">WIN%</span>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Profile Labels</div>
+    <div class="pref-row">
+      <div class="pref-item">
+        <span class="pref-label" style="color:#94a3b8">Preferred Weapon</span>
+        <span class="pref-value-light">Sword</span>
+      </div>
+      <div class="pref-item">
+        <span class="pref-label" style="color:#94a3b8">Preferred Shield</span>
+        <span class="pref-value-light">Buckler</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Light After -->
+  <div class="panel light">
+    <div class="panel-label">Light Mode</div>
+    <span class="badge badge-after">AFTER — #475569 — 7.2:1 ✓</span>
+
+    <div class="section-title">Stat Boxes</div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-value" style="color:#d97706">1,204</div>
+        <div class="stat-label" style="color:#475569">ELO</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#22c55e">42</div>
+        <div class="stat-label" style="color:#475569">WINS</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#dc2626">18</div>
+        <div class="stat-label" style="color:#475569">LOSSES</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#0f172a">70%</div>
+        <div class="stat-label" style="color:#475569">WIN RATE</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Table Headers</div>
+    <div class="table-header">
+      <span class="col col-rank" style="color:#475569">#</span>
+      <span class="col col-name" style="color:#475569">PLAYER</span>
+      <span class="col col-elo"  style="color:#475569">ELO</span>
+      <span class="col col-wins" style="color:#475569">W/L</span>
+      <span class="col col-wr"   style="color:#475569">WIN%</span>
+    </div>
+
+    <hr class="divider">
+    <div class="section-title">Profile Labels</div>
+    <div class="pref-row">
+      <div class="pref-item">
+        <span class="pref-label" style="color:#475569">Preferred Weapon</span>
+        <span class="pref-value-light">Sword</span>
+      </div>
+      <div class="pref-item">
+        <span class="pref-label" style="color:#475569">Preferred Shield</span>
+        <span class="pref-value-light">Buckler</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DARK MODE -->
+<div class="row">
+
+  <!-- Dark Before -->
+  <div class="panel dark">
+    <div class="panel-label">Dark Mode</div>
+    <span class="badge badge-before">BEFORE — #64748b — 4.05:1 ✗</span>
+
+    <div class="section-title" style="color:#94a3b8">Stat Boxes</div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-value" style="color:#f59e0b">1,204</div>
+        <div class="stat-label" style="color:#64748b">ELO</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#22c55e">42</div>
+        <div class="stat-label" style="color:#64748b">WINS</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#dc2626">18</div>
+        <div class="stat-label" style="color:#64748b">LOSSES</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#f1f5f9">70%</div>
+        <div class="stat-label" style="color:#64748b">WIN RATE</div>
+      </div>
+    </div>
+
+    <hr class="divider" style="border-color:#334155">
+    <div class="section-title" style="color:#94a3b8">Table Headers</div>
+    <div class="table-header">
+      <span class="col col-rank" style="color:#64748b">#</span>
+      <span class="col col-name" style="color:#64748b">PLAYER</span>
+      <span class="col col-elo"  style="color:#64748b">ELO</span>
+      <span class="col col-wins" style="color:#64748b">W/L</span>
+      <span class="col col-wr"   style="color:#64748b">WIN%</span>
+    </div>
+
+    <hr class="divider" style="border-color:#334155">
+    <div class="section-title" style="color:#94a3b8">Profile Labels</div>
+    <div class="pref-row">
+      <div class="pref-item">
+        <span class="pref-label" style="color:#64748b">Preferred Weapon</span>
+        <span class="pref-value-dark">Sword</span>
+      </div>
+      <div class="pref-item">
+        <span class="pref-label" style="color:#64748b">Preferred Shield</span>
+        <span class="pref-value-dark">Buckler</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dark After -->
+  <div class="panel dark">
+    <div class="panel-label">Dark Mode</div>
+    <span class="badge badge-after">AFTER — #94a3b8 — 7.5:1 ✓</span>
+
+    <div class="section-title" style="color:#94a3b8">Stat Boxes</div>
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-value" style="color:#f59e0b">1,204</div>
+        <div class="stat-label" style="color:#94a3b8">ELO</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#22c55e">42</div>
+        <div class="stat-label" style="color:#94a3b8">WINS</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#dc2626">18</div>
+        <div class="stat-label" style="color:#94a3b8">LOSSES</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" style="color:#f1f5f9">70%</div>
+        <div class="stat-label" style="color:#94a3b8">WIN RATE</div>
+      </div>
+    </div>
+
+    <hr class="divider" style="border-color:#334155">
+    <div class="section-title" style="color:#94a3b8">Table Headers</div>
+    <div class="table-header">
+      <span class="col col-rank" style="color:#94a3b8">#</span>
+      <span class="col col-name" style="color:#94a3b8">PLAYER</span>
+      <span class="col col-elo"  style="color:#94a3b8">ELO</span>
+      <span class="col col-wins" style="color:#94a3b8">W/L</span>
+      <span class="col col-wr"   style="color:#94a3b8">WIN%</span>
+    </div>
+
+    <hr class="divider" style="border-color:#334155">
+    <div class="section-title" style="color:#94a3b8">Profile Labels</div>
+    <div class="pref-row">
+      <div class="pref-item">
+        <span class="pref-label" style="color:#94a3b8">Preferred Weapon</span>
+        <span class="pref-value-dark">Sword</span>
+      </div>
+      <div class="pref-item">
+        <span class="pref-label" style="color:#94a3b8">Preferred Shield</span>
+        <span class="pref-value-dark">Buckler</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
