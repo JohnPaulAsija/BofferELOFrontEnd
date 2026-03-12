@@ -16,10 +16,12 @@ import { ErrorModal } from '@/components/ui/error-modal';
 import { useErrorModal } from '@/hooks/useErrorModal';
 import {
   getUsersListFromAPI,
+  getUserProfileFromAPI,
   reportMatchFromAPI,
   UserListEntry,
   ReportMatchResponse,
 } from '@/lib/apiInteractions';
+import { calculateEloDelta } from '@/lib/eloPreview';
 
 type Outcome = 'win' | 'loss' | null;
 
@@ -36,6 +38,9 @@ export default function RecordMatchScreen() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [selectedOpponent, setSelectedOpponent] = useState<UserListEntry | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [myElo, setMyElo] = useState<number | null>(null);
+  const [opponentElo, setOpponentElo] = useState<number | null>(null);
+  const [eloLoading, setEloLoading] = useState(false);
   const { modal: errorModal, showError, hideModal: hideErrorModal } = useErrorModal();
   const [successResult, setSuccessResult] = useState<ReportMatchResponse | null>(null);
 
@@ -55,8 +60,33 @@ export default function RecordMatchScreen() {
           showError('Error', 'Could not load players. Please try again.');
       })
       .finally(() => { if (!cancelled) setUsersLoading(false); });
+    getUserProfileFromAPI(session.user.id)
+      .then((p) => { if (!cancelled) setMyElo(p.elo); })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, [loading, session]);
+
+  useEffect(() => {
+    if (!selectedOpponent) {
+      setOpponentElo(null);
+      return;
+    }
+    let cancelled = false;
+    setEloLoading(true);
+    getUserProfileFromAPI(selectedOpponent.id)
+      .then((p) => { if (!cancelled) setOpponentElo(p.elo); })
+      .catch(() => { if (!cancelled) setOpponentElo(null); })
+      .finally(() => { if (!cancelled) setEloLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedOpponent]);
+
+  const eloPreview: number | null =
+    outcome !== null && myElo !== null && opponentElo !== null
+      ? calculateEloDelta(
+          outcome === 'win' ? myElo : opponentElo,
+          outcome === 'win' ? opponentElo : myElo,
+        ) * (outcome === 'win' ? 1 : -1)
+      : null;
 
   const filteredUsers = users.filter((u) =>
     u.username.toLowerCase().includes(search.toLowerCase())
@@ -187,6 +217,24 @@ export default function RecordMatchScreen() {
               </View>
             )}
           </>
+        )}
+
+        {/* ELO preview */}
+        {(eloPreview !== null || eloLoading) && (
+          <View style={s.eloPreviewBanner}>
+            {eloLoading ? (
+              <ActivityIndicator color={colors.brand.amber} />
+            ) : (
+              <>
+                <Text style={s.eloPreviewLabel}>Projected ELO change</Text>
+                <Text style={[s.eloPreviewDelta, eloPreview! >= 0 ? s.eloPositive : s.eloNegative]}>
+                  {eloPreview! >= 0 ? '+' : ''}{eloPreview}
+                  {myElo !== null ? `  (${myElo} → ${myElo + eloPreview!})` : ''}
+                </Text>
+                <Text style={s.eloPreviewNote}>Estimate only — actual change calculated at submission</Text>
+              </>
+            )}
+          </View>
         )}
 
         {/* Submit */}
@@ -321,6 +369,39 @@ const styles = (isDark: boolean, colors: ReturnType<typeof getThemeColors>) =>
       padding: 20,
       color: colors.text.tertiary,
       backgroundColor: colors.background.secondary,
+    },
+    eloPreviewBanner: {
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border.primary,
+      backgroundColor: colors.background.secondary,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      marginBottom: 16,
+      alignItems: 'center',
+      gap: 4,
+    },
+    eloPreviewLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.text.secondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+    },
+    eloPreviewDelta: {
+      fontSize: 22,
+      fontWeight: '700',
+    },
+    eloPositive: {
+      color: colors.brand.amber,
+    },
+    eloNegative: {
+      color: colors.brand.red,
+    },
+    eloPreviewNote: {
+      fontSize: 11,
+      color: colors.text.tertiary,
+      marginTop: 2,
     },
     submitButton: {
       backgroundColor: colors.brand.amber,

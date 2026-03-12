@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { PendingMatch } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 function timeAgo(isoString: string): string {
   const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
@@ -29,6 +30,7 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'confirm' | 'reject' | null>(null);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
@@ -71,25 +73,34 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
     });
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!onConfirmSelected || selectedIds.size === 0 || confirming || rejecting) return;
-    setConfirming(true);
-    try {
-      await onConfirmSelected(Array.from(selectedIds));
-      setSelectedIds(new Set());
-    } finally {
-      setConfirming(false);
-    }
+    setPendingAction('confirm');
   };
 
-  const handleReject = async () => {
+  const handleReject = () => {
     if (!onRejectSelected || selectedIds.size === 0 || confirming || rejecting) return;
-    setRejecting(true);
-    try {
-      await onRejectSelected(Array.from(selectedIds));
-      setSelectedIds(new Set());
-    } finally {
-      setRejecting(false);
+    setPendingAction('reject');
+  };
+
+  const handleModalConfirm = async () => {
+    setPendingAction(null);
+    if (pendingAction === 'confirm' && onConfirmSelected) {
+      setConfirming(true);
+      try {
+        await onConfirmSelected(Array.from(selectedIds));
+        setSelectedIds(new Set());
+      } finally {
+        setConfirming(false);
+      }
+    } else if (pendingAction === 'reject' && onRejectSelected) {
+      setRejecting(true);
+      try {
+        await onRejectSelected(Array.from(selectedIds));
+        setSelectedIds(new Set());
+      } finally {
+        setRejecting(false);
+      }
     }
   };
 
@@ -300,6 +311,16 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
         <Text style={{ color: colors.text.tertiary, textAlign: 'center', paddingVertical: 24 }}>
           {search ? 'No matches found.' : 'No pending matches.'}
         </Text>
+      )}
+
+      {pendingAction && (
+        <ConfirmModal
+          visible={true}
+          action={pendingAction}
+          matchCount={selectedIds.size}
+          onCancel={() => setPendingAction(null)}
+          onConfirm={handleModalConfirm}
+        />
       )}
     </View>
   );

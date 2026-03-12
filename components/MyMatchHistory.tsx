@@ -6,6 +6,7 @@ import { getThemeColors, Typography } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ErrorModal } from '@/components/ui/error-modal';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 type MyMatchHistoryProps = {
   userId: string;
@@ -28,6 +29,7 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
   const [activeTab, setActiveTab] = useState<'confirmed' | 'unconfirmed'>('confirmed');
   const [actionLoading, setActionLoading] = useState<Record<string, 'confirming' | 'rejecting'>>({});
   const [actionError, setActionError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{ matchId: string; action: 'confirm' | 'reject' } | null>(null);
 
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
@@ -115,6 +117,20 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
         onDismiss={() => setActionError(null)}
         variant="error"
       />
+      {pendingAction && (
+        <ConfirmModal
+          visible={true}
+          action={pendingAction.action}
+          matchCount={1}
+          onCancel={() => setPendingAction(null)}
+          onConfirm={() => {
+            const { matchId, action } = pendingAction;
+            setPendingAction(null);
+            if (action === 'confirm') handleConfirmMatch(matchId);
+            else handleRejectMatch(matchId);
+          }}
+        />
+      )}
       {/* Tab bar */}
       <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: colors.border.primary }}>
         {(['confirmed', 'unconfirmed'] as const).map((tab) => {
@@ -231,7 +247,7 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
                       <View style={{ flexDirection: 'row', gap: 6, marginLeft: 8 }}>
                         {match.reporterId !== userId && (
                           <TouchableOpacity
-                            onPress={(e) => { e.stopPropagation(); handleConfirmMatch(match.id); }}
+                            onPress={(e) => { e.stopPropagation(); setPendingAction({ matchId: match.id, action: 'confirm' }); }}
                             disabled={!!actionLoading[match.id]}
                             style={{
                               paddingHorizontal: 10,
@@ -249,7 +265,7 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
                           </TouchableOpacity>
                         )}
                         <TouchableOpacity
-                          onPress={(e) => { e.stopPropagation(); handleRejectMatch(match.id); }}
+                          onPress={(e) => { e.stopPropagation(); setPendingAction({ matchId: match.id, action: 'reject' }); }}
                           disabled={!!actionLoading[match.id]}
                           style={{
                             paddingHorizontal: 10,
