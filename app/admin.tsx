@@ -16,6 +16,7 @@ import {
 } from '@/lib/apiInteractions';
 import PendingMatchList from '@/components/PendingMatchList';
 import AdminReportMatch from '@/components/AdminReportMatch';
+import AdminUserManager from '@/components/AdminUserManager';
 
 function buildBatchErrorMessage(
   response: BatchMatchResponse,
@@ -40,7 +41,7 @@ function buildBatchErrorMessage(
 export default function AdminScreen() {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
-  const { session, loading, isAdmin } = useAuth();
+  const { session, loading, isAdmin, isSuperAdmin } = useAuth();
   const router = useRouter();
   const [deniedModal, setDeniedModal] = useState(false);
   const [pendingMatches, setPendingMatches] = useState<PendingMatch[]>([]);
@@ -144,6 +145,13 @@ export default function AdminScreen() {
         onConfirmSelected={handleConfirmSelected}
         onRejectSelected={handleRejectSelected}
       />
+      {isSuperAdmin && session && (
+        <AdminUserManager
+          users={users}
+          jwt={session.access_token}
+          onUserDeleted={(userId) => setUsers((prev) => prev.filter((u) => u.id !== userId))}
+        />
+      )}
     </ScrollView>
   );
 }

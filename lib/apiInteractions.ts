@@ -157,6 +157,71 @@ export const getUsersListFromAPI = async (jwt: string): Promise<UserListEntry[]>
   return data.users as UserListEntry[];
 };
 
+export const adminChangeUsernameFromAPI = async (
+  jwt: string,
+  userId: string,
+  username: string
+): Promise<{ username: string }> => {
+  const response = await fetch(`${API_URL}/users/${userId}/username`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username }),
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      403: 'Insufficient permissions',
+      404: 'User not found',
+      409: 'Username already taken',
+      422: 'Invalid username',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to change username.');
+  }
+  const data = await response.json();
+  return data.user;
+};
+
+export const adminChangeEmailFromAPI = async (
+  jwt: string,
+  userId: string,
+  email: string
+): Promise<{ email: string }> => {
+  const response = await fetch(`${API_URL}/users/${userId}/email`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      403: 'Insufficient permissions',
+      404: 'User not found',
+      422: 'Invalid email address',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to change email.');
+  }
+  const data = await response.json();
+  return data.user;
+};
+
+export const adminDeleteUserFromAPI = async (
+  jwt: string,
+  userId: string
+): Promise<{ deleted: string }> => {
+  const response = await fetch(`${API_URL}/users/${userId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      400: 'Cannot delete a system account',
+      403: 'Insufficient permissions',
+      404: 'User not found',
+      422: 'Invalid user ID',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to delete user.');
+  }
+  return response.json();
+};
+
 export type ReportMatchResponse = {
   id: string;
   winnerId: string;
