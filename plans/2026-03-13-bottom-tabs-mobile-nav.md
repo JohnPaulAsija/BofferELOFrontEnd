@@ -1,4 +1,5 @@
 # Plan: Bottom Tab Navigator for Mobile
+# this plan may or may not be implemented, the plan is being evaluated
 
 ## Context
 
