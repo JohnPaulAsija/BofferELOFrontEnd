@@ -7,6 +7,7 @@ import ProfilePreferences from '@/components/ProfilePreferences';
 import MyMatchHistory from '@/components/MyMatchHistory';
 import { Input } from '@/components/ui/input';
 import { useErrorModal } from '@/hooks/useErrorModal';
+import { ErrorModal } from '@/components/ui/error-modal';
 import { getThemeColors, Spacing, Typography, BorderRadius } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,7 +64,7 @@ export default function UserProfileComponent({ userId, isOwnProfile = false }: P
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const { session, signOut } = useAuth();
-  const { modal, showError, showInfo } = useErrorModal();
+  const { modal, showError, showInfo, hideModal } = useErrorModal();
   const router = useRouter();
 
   useEffect(() => {
@@ -179,7 +180,13 @@ export default function UserProfileComponent({ userId, isOwnProfile = false }: P
 
   return (
     <>
-      {modal}
+      <ErrorModal
+        visible={modal.visible}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        onDismiss={hideModal}
+      />
       <View style={{
         borderWidth: 1,
         borderColor: colors.border.primary,
