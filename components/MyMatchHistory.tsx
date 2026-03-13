@@ -218,6 +218,30 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
         </View>
       )}
 
+      {/* Column headers */}
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border.primary,
+      }}>
+        <View style={{ width: 46 }} />
+        <Text style={{ flex: 1, fontSize: 11, fontWeight: '600', color: colors.text.tertiary }}>
+          OPPONENT
+        </Text>
+        <Text style={{ width: 80, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
+          RULESET
+        </Text>
+        <Text style={{ width: 52, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
+          ELO
+        </Text>
+        <Text style={{ width: 56, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'right' }}>
+          WHEN
+        </Text>
+      </View>
+
       {/* Tab content */}
       <View style={{ padding: 12 }}>
         {matchesLoading && (
@@ -284,25 +308,25 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
                       vs {opponent}
                     </Text>
 
-                    {match.ruleSetId && (
-                      <Text style={{ fontSize: 11, color: colors.text.tertiary, marginLeft: 6 }}>
-                        {getRuleSetName(match.ruleSetId)}
-                      </Text>
-                    )}
+                    {/* Ruleset */}
+                    <Text numberOfLines={1} style={{ width: 80, fontSize: 11, color: colors.text.tertiary, textAlign: 'center' }}>
+                      {match.ruleSetId ? getRuleSetName(match.ruleSetId) : '—'}
+                    </Text>
 
                     {/* ELO change */}
                     <Text style={{
+                      width: 52,
                       fontSize: 13,
                       fontWeight: '700',
                       color: isWinner ? '#4ade80' : colors.brand.red,
-                      marginRight: 10,
+                      textAlign: 'center',
                     }}>
                       {isWinner ? `+${match.eloChange}` : `-${match.eloChange}`}
                     </Text>
 
                     {/* Timestamp */}
                     {timestamp && (
-                      <Text style={{ fontSize: 12, color: colors.text.tertiary, minWidth: 56, textAlign: 'right' }}>
+                      <Text style={{ fontSize: 12, color: colors.text.tertiary, width: 56, textAlign: 'right' }}>
                         {timestamp}
                       </Text>
                     )}

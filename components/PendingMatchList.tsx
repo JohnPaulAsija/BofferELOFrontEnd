@@ -295,6 +295,9 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
           <Text style={{ flex: 1, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             LOSER
           </Text>
+          <Text style={{ width: 80, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
+            RULESET
+          </Text>
           <Text style={{ width: 64, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             ELO SWING
           </Text>
@@ -345,6 +348,9 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
                     <Text style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.secondary, textAlign: 'center' }}>
                       {match.loserName}
                     </Text>
+                    <Text numberOfLines={1} style={{ width: 80, fontSize: 11, color: colors.text.tertiary, textAlign: 'center' }}>
+                      {match.ruleSetId ? getRuleSetName(match.ruleSetId) : '—'}
+                    </Text>
                     <Text style={{ width: 64, fontSize: 13, fontWeight: '700', color: colors.brand.amber, textAlign: 'center' }}>
                       +{match.eloChange}
                     </Text>
@@ -353,7 +359,7 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
                     </Text>
                   </View>
                   <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4, paddingHorizontal: 4 }}>
-                    Reported by {match.reporterName}{match.ruleSetId ? ` · ${getRuleSetName(match.ruleSetId)}` : ''}
+                    Reported by {match.reporterName}
                   </Text>
                 </View>
               </View>

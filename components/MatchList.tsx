@@ -170,6 +170,9 @@ export default function MatchList({
           <Text style={{ flex: 1, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             LOSER
           </Text>
+          {!isCompact && <Text style={{ width: 80, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
+            RULESET
+          </Text>}
           {!isCompact && <Text style={{ width: 64, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
             ELO SWING
           </Text>}
@@ -208,6 +211,9 @@ export default function MatchList({
                 <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.secondary, textAlign: 'center' }}>
                   {match.loserName}
                 </Text>
+                {!isCompact && <Text numberOfLines={1} style={{ width: 80, fontSize: 11, color: colors.text.tertiary, textAlign: 'center' }}>
+                  {match.ruleSetId ? getRuleSetName(match.ruleSetId) : '—'}
+                </Text>}
                 {!isCompact && <Text style={{ width: 64, fontSize: 13, fontWeight: '700', color: colors.brand.amber, textAlign: 'center' }}>
                   +{match.eloChange}
                 </Text>}
@@ -215,11 +221,6 @@ export default function MatchList({
                   {timeAgo(match.confirmedAt)}
                 </Text>}
               </View>
-              {match.ruleSetId && (
-                <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2, textAlign: 'center' }}>
-                  {getRuleSetName(match.ruleSetId)}
-                </Text>
-              )}
             </View>
           )}
         </Pressable>
