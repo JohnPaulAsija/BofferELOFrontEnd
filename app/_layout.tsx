@@ -2,6 +2,7 @@ import { getThemeColors } from "@/constants/theme";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import AppHeader from "@/components/AppHeader";
+import { OptionsProvider } from "@/contexts/OptionsContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -73,9 +74,11 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <ErrorBoundary>
-          <RootLayoutInner />
-        </ErrorBoundary>
+        <OptionsProvider>
+          <ErrorBoundary>
+            <RootLayoutInner />
+          </ErrorBoundary>
+        </OptionsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

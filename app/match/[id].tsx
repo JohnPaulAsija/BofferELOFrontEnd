@@ -10,6 +10,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BofferEloStyles, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useOptions } from '@/contexts/OptionsContext';
 import { getMatchDetailFromAPI, MatchDetail } from '@/lib/apiInteractions';
 
 function formatDate(iso: string): string {
@@ -31,6 +32,7 @@ export default function MatchDetailScreen() {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
+  const { getRuleSetName } = useOptions();
 
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -164,6 +166,18 @@ export default function MatchDetailScreen() {
           colors={colors}
           isDark={isDark}
         />
+
+        {match.ruleSetId && (
+          <>
+            <View style={s.divider} />
+            <InfoRow
+              label="Ruleset"
+              value={getRuleSetName(match.ruleSetId)}
+              colors={colors}
+              isDark={isDark}
+            />
+          </>
+        )}
 
         {status === 'confirmed' && match.confirmedAt && (
           <>

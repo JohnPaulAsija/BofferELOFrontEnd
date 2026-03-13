@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { getOptionsFromAPI, updatePreferencesFromAPI, UserProfile, OptionsResponse } from '@/lib/apiInteractions';
+import { updatePreferencesFromAPI, UserProfile } from '@/lib/apiInteractions';
+import { useOptions } from '@/contexts/OptionsContext';
 import { getThemeColors, BorderRadius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -83,7 +84,7 @@ function ChipPicker({
 export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpdate }: ProfilePreferencesProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [options, setOptions] = useState<OptionsResponse | null>(null);
+  const { options } = useOptions();
   const [draftGender, setDraftGender] = useState<string | null>(null);
   const [draftGame, setDraftGame] = useState<string | null>(null);
   const [draftWeapon, setDraftWeapon] = useState<string | null>(null);
@@ -93,16 +94,6 @@ export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpd
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const { session } = useAuth();
-
-  useEffect(() => {
-    if (isOwnProfile) {
-      let cancelled = false;
-      getOptionsFromAPI()
-        .then((data) => { if (!cancelled) setOptions(data); })
-        .catch(() => {});
-      return () => { cancelled = true; };
-    }
-  }, [isOwnProfile]);
 
   function openEdit() {
     setDraftGender(profile.gender ?? null);

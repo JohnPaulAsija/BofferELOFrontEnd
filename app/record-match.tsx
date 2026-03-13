@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { BofferEloStyles, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOptions } from '@/contexts/OptionsContext';
 import { ErrorModal } from '@/components/ui/error-modal';
 import { useErrorModal } from '@/hooks/useErrorModal';
 import {
@@ -29,6 +30,7 @@ export default function RecordMatchScreen() {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const { session, loading } = useAuth();
+  const { options } = useOptions();
   const router = useRouter();
 
   const [authModal, setAuthModal] = useState(false);
@@ -38,6 +40,7 @@ export default function RecordMatchScreen() {
   const [usersLoading, setUsersLoading] = useState(false);
   const [selectedOpponent, setSelectedOpponent] = useState<UserListEntry | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedRuleSetId, setSelectedRuleSetId] = useState<string | null>(null);
   const [myElo, setMyElo] = useState<number | null>(null);
   const [opponentElo, setOpponentElo] = useState<number | null>(null);
   const [eloLoading, setEloLoading] = useState(false);
@@ -80,6 +83,12 @@ export default function RecordMatchScreen() {
     return () => { cancelled = true; };
   }, [selectedOpponent]);
 
+  useEffect(() => {
+    if (options && options.rule_sets.length === 1) {
+      setSelectedRuleSetId(options.rule_sets[0].id);
+    }
+  }, [options]);
+
   const eloPreview: number | null =
     outcome !== null && myElo !== null && opponentElo !== null
       ? calculateEloDelta(
@@ -92,7 +101,7 @@ export default function RecordMatchScreen() {
     u.username.toLowerCase().includes(search.toLowerCase())
   );
 
-  const canSubmit = outcome !== null && selectedOpponent !== null && !submitting;
+  const canSubmit = outcome !== null && selectedOpponent !== null && selectedRuleSetId !== null && !submitting;
 
   const handleSubmit = async () => {
     if (!session || !outcome || !selectedOpponent) return;
@@ -101,7 +110,7 @@ export default function RecordMatchScreen() {
       const myId = session.user.id;
       const winnerId = outcome === 'win' ? myId : selectedOpponent.id;
       const loserId = outcome === 'win' ? selectedOpponent.id : myId;
-      const result = await reportMatchFromAPI(session.access_token, winnerId, loserId);
+      const result = await reportMatchFromAPI(session.access_token, winnerId, loserId, selectedRuleSetId!);
       setSuccessResult(result);
     } catch (err: unknown) {
       showError(
@@ -217,6 +226,42 @@ export default function RecordMatchScreen() {
               </View>
             )}
           </>
+        )}
+
+        {/* Ruleset picker */}
+        <Text style={s.sectionLabel}>Ruleset</Text>
+        {options && options.rule_sets.length > 0 ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 28 }}>
+            {options.rule_sets.map((rs) => (
+              <TouchableOpacity
+                key={rs.id}
+                style={[
+                  {
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    borderWidth: 2,
+                    borderColor: selectedRuleSetId === rs.id ? colors.brand.amber : colors.border.primary,
+                    backgroundColor: selectedRuleSetId === rs.id
+                      ? (isDark ? colors.brand.amberDark + '33' : colors.brand.amberDark)
+                      : colors.background.secondary,
+                  },
+                ]}
+                onPress={() => setSelectedRuleSetId(rs.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: selectedRuleSetId === rs.id ? colors.text.primary : colors.text.secondary,
+                }}>
+                  {rs.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <Text style={{ color: colors.text.tertiary, marginBottom: 28 }}>Loading rulesets...</Text>
         )}
 
         {/* ELO preview */}

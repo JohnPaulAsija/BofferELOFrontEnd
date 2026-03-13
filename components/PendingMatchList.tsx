@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { PendingMatch } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useOptions } from '@/contexts/OptionsContext';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 
 function timeAgo(isoString: string): string {
@@ -26,7 +27,9 @@ type Props = {
 };
 
 export default function PendingMatchList({ matches, loading, style, onConfirmSelected, onRejectSelected }: Props) {
+  const { options, getRuleSetName } = useOptions();
   const [search, setSearch] = useState('');
+  const [ruleSetFilter, setRuleSetFilter] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -39,11 +42,13 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
 
   const filtered = matches.filter((m) => {
     const q = search.toLowerCase();
-    return (
-      m.winnerName.toLowerCase().includes(q) ||
-      m.loserName.toLowerCase().includes(q) ||
-      m.reporterName.toLowerCase().includes(q)
-    );
+    if (q && !m.winnerName.toLowerCase().includes(q) && !m.loserName.toLowerCase().includes(q) && !m.reporterName.toLowerCase().includes(q)) {
+      return false;
+    }
+    if (ruleSetFilter && m.ruleSetId !== ruleSetFilter) {
+      return false;
+    }
+    return true;
   });
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((m) => selectedIds.has(m.id));
@@ -168,6 +173,56 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
             minWidth: 160,
           }}
         />
+        {options && options.rule_sets.length > 1 && (
+          <View style={{
+            flexDirection: 'row',
+            borderWidth: 1,
+            borderColor: colors.border.primary,
+            borderRadius: 6,
+            backgroundColor: colors.background.primary,
+            overflow: 'hidden',
+          }}>
+            <Pressable
+              onPress={() => setRuleSetFilter(null)}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 10,
+                minHeight: 44,
+                justifyContent: 'center',
+                backgroundColor: ruleSetFilter === null ? colors.brand.amber + '22' : 'transparent',
+              }}
+            >
+              <Text style={{
+                fontSize: 13,
+                fontWeight: ruleSetFilter === null ? '700' : '400',
+                color: ruleSetFilter === null ? colors.brand.amber : colors.text.tertiary,
+              }}>
+                All
+              </Text>
+            </Pressable>
+            {options.rule_sets.map((rs) => (
+              <Pressable
+                key={rs.id}
+                onPress={() => setRuleSetFilter(rs.id)}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 10,
+                  minHeight: 44,
+                  justifyContent: 'center',
+                  backgroundColor: ruleSetFilter === rs.id ? colors.brand.amber + '22' : 'transparent',
+                }}
+              >
+                <Text style={{
+                  fontSize: 13,
+                  fontWeight: ruleSetFilter === rs.id ? '700' : '400',
+                  color: ruleSetFilter === rs.id ? colors.brand.amber : colors.text.tertiary,
+                }}>
+                  {rs.name}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
         {!!onConfirmSelected && (
           <TouchableOpacity
             onPress={handleConfirm}
@@ -298,7 +353,7 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
                     </Text>
                   </View>
                   <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 4, paddingHorizontal: 4 }}>
-                    Reported by {match.reporterName}
+                    Reported by {match.reporterName}{match.ruleSetId ? ` · ${getRuleSetName(match.ruleSetId)}` : ''}
                   </Text>
                 </View>
               </View>

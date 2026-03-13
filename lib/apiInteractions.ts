@@ -1,6 +1,6 @@
-import { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch, BatchMatchResponse } from '@/lib/types';
+import { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch, BatchMatchResponse, OptionsResponse, RuleSet } from '@/lib/types';
 
-export type { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch, BatchMatchResponse };
+export type { LeaderboardEntry, Match, MatchDetail, UserProfile, UserMatch, MyMatchesResponse, PendingMatch, BatchMatchResponse, OptionsResponse, RuleSet };
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -52,13 +52,6 @@ export const getMeFromAPI = async (jwt: string): Promise<MeResponse> => {
   }
   const data = await response.json();
   return data.user as MeResponse;
-};
-
-export type OptionsResponse = {
-  genders: string[];
-  games: string[];
-  weapons: string[];
-  shields: string[];
 };
 
 export const getOptionsFromAPI = async (): Promise<OptionsResponse> => {
@@ -235,6 +228,7 @@ export type ReportMatchResponse = {
   reporterName: string;
   reportedAt: string;
   confirmedAt: string | null;
+  ruleSetId: string | null;
 };
 
 export const getMatchDetailFromAPI = async (matchId: string): Promise<MatchDetail> => {
@@ -269,16 +263,18 @@ export const getPendingMatchesFromAPI = async (
 export const reportMatchFromAPI = async (
   jwt: string,
   winner_id: string,
-  loser_id: string
+  loser_id: string,
+  rule_set_id: string
 ): Promise<ReportMatchResponse> => {
   const response = await fetch(`${API_URL}/matches`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ winner_id, loser_id }),
+    body: JSON.stringify({ winner_id, loser_id, rule_set_id }),
   });
   if (!response.ok) {
     const messages: Record<number, string> = {
       409: 'This match has already been reported.',
+      422: 'Please select a valid ruleset.',
       429: "You've reported too many matches recently. Please wait before reporting another.",
       400: 'Invalid match data. Please check your selection and try again.',
     };

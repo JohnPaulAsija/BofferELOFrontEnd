@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -11,16 +11,15 @@ import { TermsModal } from "@/components/ui/terms-modal";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import {
-  getOptionsFromAPI,
   setupUserFromAPI,
   updatePreferencesFromAPI,
-  OptionsResponse,
 } from "@/lib/apiInteractions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getThemeColors, Spacing, Typography, BorderRadius } from "@/constants/theme";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useErrorModal } from "@/hooks/useErrorModal";
+import { useOptions } from "@/contexts/OptionsContext";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]+$/;
@@ -91,16 +90,8 @@ export default function RegisterScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsModalVisible, setTermsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [options, setOptions] = useState<OptionsResponse | null>(null);
+  const { options } = useOptions();
   const { modal, showError, showInfo, hideModal } = useErrorModal();
-
-  useEffect(() => {
-    getOptionsFromAPI()
-      .then(setOptions)
-      .catch(() => {
-        // Options are cosmetic — sign-up still works without them
-      });
-  }, []);
 
   async function handleRegister() {
     const trimmedEmail = email.trim();

@@ -6,6 +6,11 @@ export type LeaderboardEntry = {
   losses: number;
 };
 
+export interface RuleSet {
+  id: string;
+  name: string;
+}
+
 export type Match = {
   id: string;
   winnerId: string;
@@ -15,6 +20,7 @@ export type Match = {
   winnerEloBefore: number;
   loserEloBefore: number;
   eloChange: number;
+  ruleSetId: string | null;
   confirmedAt: string;
 };
 
@@ -36,6 +42,7 @@ export type MatchDetail = {
   rejectedAt: string | null;
   rejectedById: string | null;
   rejectedByName: string | null;
+  ruleSetId: string | null;
 };
 
 export type UserProfile = {
@@ -62,6 +69,7 @@ export type UserMatch = {
   confirmedAt: string | null;
   reportedAt?: string;
   reporterId?: string;
+  ruleSetId: string | null;
 };
 
 export type MyMatchesResponse = {
@@ -82,6 +90,7 @@ export type PendingMatch = {
   reporterName: string;
   reportedAt: string;
   confirmedAt: null;
+  ruleSetId: string | null;
 };
 
 export type BatchMatchResultItem = {
@@ -96,6 +105,7 @@ export type BatchMatchResultItem = {
     rejectedById?: string;
     rejectedByName?: string;
     eloChange?: number;
+    ruleSetId?: string | null;
   };
   error?: string;
 };
@@ -104,4 +114,12 @@ export type BatchMatchResponse = {
   results: BatchMatchResultItem[];
   succeeded: number;
   failed: number;
+};
+
+export type OptionsResponse = {
+  genders: string[];
+  games: string[];
+  weapons: string[];
+  shields: string[];
+  rule_sets: RuleSet[];
 };

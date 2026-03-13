@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Match } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useOptions } from '@/contexts/OptionsContext';
 
 function timeAgo(isoString: string): string {
   const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
@@ -36,18 +37,26 @@ export default function MatchList({
   emptyText = 'No matches yet.',
 }: Props) {
   const [search, setSearch] = useState('');
+  const [ruleSetFilter, setRuleSetFilter] = useState<string | null>(null);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isCompact = width < 600;
+  const { options, getRuleSetName } = useOptions();
 
-  const filtered = searchable
-    ? matches.filter((m) => {
-        const q = search.toLowerCase();
-        return m.winnerName.toLowerCase().includes(q) || m.loserName.toLowerCase().includes(q);
-      })
-    : matches;
+  const filtered = matches.filter((m) => {
+    if (searchable && search) {
+      const q = search.toLowerCase();
+      if (!m.winnerName.toLowerCase().includes(q) && !m.loserName.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
+    if (ruleSetFilter && m.ruleSetId !== ruleSetFilter) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <View style={[{
@@ -92,6 +101,56 @@ export default function MatchList({
             }}
           />
         )}
+        {options && options.rule_sets.length > 1 && (
+          <View style={{
+            flexDirection: 'row',
+            borderWidth: 1,
+            borderColor: colors.border.primary,
+            borderRadius: 6,
+            backgroundColor: colors.background.primary,
+            overflow: 'hidden',
+          }}>
+            <Pressable
+              onPress={() => setRuleSetFilter(null)}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 10,
+                minHeight: 44,
+                justifyContent: 'center',
+                backgroundColor: ruleSetFilter === null ? colors.brand.amber + '22' : 'transparent',
+              }}
+            >
+              <Text style={{
+                fontSize: 13,
+                fontWeight: ruleSetFilter === null ? '700' : '400',
+                color: ruleSetFilter === null ? colors.brand.amber : colors.text.tertiary,
+              }}>
+                All
+              </Text>
+            </Pressable>
+            {options.rule_sets.map((rs) => (
+              <Pressable
+                key={rs.id}
+                onPress={() => setRuleSetFilter(rs.id)}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 10,
+                  minHeight: 44,
+                  justifyContent: 'center',
+                  backgroundColor: ruleSetFilter === rs.id ? colors.brand.amber + '22' : 'transparent',
+                }}
+              >
+                <Text style={{
+                  fontSize: 13,
+                  fontWeight: ruleSetFilter === rs.id ? '700' : '400',
+                  color: ruleSetFilter === rs.id ? colors.brand.amber : colors.text.tertiary,
+                }}>
+                  {rs.name}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Column headers */}
@@ -128,8 +187,6 @@ export default function MatchList({
         <Pressable key={match.id} onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id } })}>
           {({ pressed }) => (
             <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
               backgroundColor: colors.background.secondary,
               borderRadius: 8,
               padding: 12,
@@ -138,21 +195,31 @@ export default function MatchList({
               borderColor: colors.border.primary,
               opacity: pressed ? 0.7 : 1,
             }}>
-              <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.primary, textAlign: 'center' }}>
-                {match.winnerName}
-              </Text>
-              <Text style={{ width: 28, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
-                vs
-              </Text>
-              <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.secondary, textAlign: 'center' }}>
-                {match.loserName}
-              </Text>
-              {!isCompact && <Text style={{ width: 64, fontSize: 13, fontWeight: '700', color: colors.brand.amber, textAlign: 'center' }}>
-                +{match.eloChange}
-              </Text>}
-              {!isCompact && <Text style={{ width: 56, fontSize: 12, color: colors.text.tertiary, textAlign: 'right' }}>
-                {timeAgo(match.confirmedAt)}
-              </Text>}
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+                <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.primary, textAlign: 'center' }}>
+                  {match.winnerName}
+                </Text>
+                <Text style={{ width: 28, fontSize: 11, fontWeight: '600', color: colors.text.tertiary, textAlign: 'center' }}>
+                  vs
+                </Text>
+                <Text numberOfLines={1} style={{ flex: 1, fontSize: 14, fontWeight: '700', color: colors.text.secondary, textAlign: 'center' }}>
+                  {match.loserName}
+                </Text>
+                {!isCompact && <Text style={{ width: 64, fontSize: 13, fontWeight: '700', color: colors.brand.amber, textAlign: 'center' }}>
+                  +{match.eloChange}
+                </Text>}
+                {!isCompact && <Text style={{ width: 56, fontSize: 12, color: colors.text.tertiary, textAlign: 'right' }}>
+                  {timeAgo(match.confirmedAt)}
+                </Text>}
+              </View>
+              {match.ruleSetId && (
+                <Text style={{ fontSize: 11, color: colors.text.tertiary, marginTop: 2, textAlign: 'center' }}>
+                  {getRuleSetName(match.ruleSetId)}
+                </Text>
+              )}
             </View>
           )}
         </Pressable>

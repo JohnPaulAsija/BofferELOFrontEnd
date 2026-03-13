@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useOptions } from '@/contexts/OptionsContext';
 import { ErrorModal } from '@/components/ui/error-modal';
 import { useErrorModal } from '@/hooks/useErrorModal';
 import { UserListEntry, reportMatchFromAPI } from '@/lib/apiInteractions';
@@ -65,14 +66,22 @@ function PlayerPicker({ query, onQueryChange, users, onSelect, colors, s }: Play
 export default function AdminReportMatch({ jwt, users, onMatchReported }: Props) {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
+  const { options } = useOptions();
 
   const [winnerQuery, setWinnerQuery] = useState('');
+  const [selectedRuleSetId, setSelectedRuleSetId] = useState<string | null>(null);
   const [loserQuery, setLoserQuery] = useState('');
   const [selectedWinner, setSelectedWinner] = useState<UserListEntry | null>(null);
   const [selectedLoser, setSelectedLoser] = useState<UserListEntry | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const { modal, showError, hideModal } = useErrorModal();
+
+  useEffect(() => {
+    if (options && options.rule_sets.length === 1) {
+      setSelectedRuleSetId(options.rule_sets[0].id);
+    }
+  }, [options]);
 
   const filteredWinners = users.filter(
     (u) =>
@@ -85,13 +94,13 @@ export default function AdminReportMatch({ jwt, users, onMatchReported }: Props)
       u.id !== selectedWinner?.id
   );
 
-  const canSubmit = selectedWinner !== null && selectedLoser !== null && !submitting;
+  const canSubmit = selectedWinner !== null && selectedLoser !== null && selectedRuleSetId !== null && !submitting;
 
   const handleSubmit = async () => {
     if (!selectedWinner || !selectedLoser) return;
     setSubmitting(true);
     try {
-      const result = await reportMatchFromAPI(jwt, selectedWinner.id, selectedLoser.id);
+      const result = await reportMatchFromAPI(jwt, selectedWinner.id, selectedLoser.id, selectedRuleSetId!);
       setSuccessMessage(
         `${result.winnerName} defeated ${result.loserName} (+${result.eloChange} ELO). The match is pending confirmation.`
       );
@@ -109,6 +118,7 @@ export default function AdminReportMatch({ jwt, users, onMatchReported }: Props)
     setSuccessMessage('');
     setSelectedWinner(null);
     setSelectedLoser(null);
+    setSelectedRuleSetId(options && options.rule_sets.length === 1 ? options.rule_sets[0].id : null);
     setWinnerQuery('');
     setLoserQuery('');
     onMatchReported();
@@ -171,6 +181,40 @@ export default function AdminReportMatch({ jwt, users, onMatchReported }: Props)
           colors={colors}
           s={s}
         />
+      )}
+
+      {/* Ruleset */}
+      <Text style={[s.label, { marginTop: 16 }]}>Ruleset</Text>
+      {options && options.rule_sets.length > 0 ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 }}>
+          {options.rule_sets.map((rs) => (
+            <TouchableOpacity
+              key={rs.id}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderRadius: 8,
+                borderWidth: 2,
+                borderColor: selectedRuleSetId === rs.id ? colors.brand.amber : colors.border.primary,
+                backgroundColor: selectedRuleSetId === rs.id
+                  ? (isDark ? colors.brand.amberDark + '33' : colors.brand.amberDark)
+                  : colors.background.tertiary,
+              }}
+              onPress={() => setSelectedRuleSetId(rs.id)}
+              activeOpacity={0.7}
+            >
+              <Text style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: selectedRuleSetId === rs.id ? colors.text.primary : colors.text.secondary,
+              }}>
+                {rs.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : (
+        <Text style={{ color: colors.text.tertiary, fontSize: 13, marginBottom: 4 }}>Loading rulesets...</Text>
       )}
 
       <TouchableOpacity
