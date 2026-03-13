@@ -318,6 +318,62 @@ export type VersionResponse = {
   version: string;
 };
 
+export const changeUsernameFromAPI = async (
+  jwt: string,
+  username: string
+): Promise<{ username: string }> => {
+  const response = await fetch(`${API_URL}/users/me/username`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username }),
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      409: 'Username already taken',
+      422: 'Invalid username format',
+      429: 'Too many requests — try again in a minute',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to change username.');
+  }
+  const data = await response.json();
+  return data.user;
+};
+
+export const changeEmailFromAPI = async (
+  jwt: string,
+  email: string
+): Promise<{ message: string }> => {
+  const response = await fetch(`${API_URL}/users/me/email`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      422: 'Invalid email address',
+      429: 'Too many requests — try again in a minute',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to change email.');
+  }
+  return response.json();
+};
+
+export const deleteAccountFromAPI = async (
+  jwt: string
+): Promise<{ deleted: string }> => {
+  const response = await fetch(`${API_URL}/users/me`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  if (!response.ok) {
+    const messages: Record<number, string> = {
+      429: 'Too many requests — try again in a minute',
+    };
+    throw new Error(messages[response.status] ?? 'Failed to delete account.');
+  }
+  return response.json();
+};
+
 export const getBackendVersionFromAPI = async (): Promise<VersionResponse> => {
   const response = await fetch(`${API_URL}/version`);
   if (!response.ok) {
