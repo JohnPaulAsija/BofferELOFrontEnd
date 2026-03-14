@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, Pressable, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, Pressable, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getMyMatchesFromAPI, confirmMatchesFromAPI, rejectMatchesFromAPI, MyMatchesResponse, UserMatch } from '@/lib/apiInteractions';
 import { getThemeColors, Typography } from '@/constants/theme';
@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useOptions } from '@/contexts/OptionsContext';
 import { ErrorModal } from '@/components/ui/error-modal';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import RuleSetFilter from '@/components/ui/rule-set-filter';
 
 type MyMatchHistoryProps = {
   userId: string;
@@ -38,6 +39,8 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
   const router = useRouter();
   const { options, getRuleSetName } = useOptions();
   const [ruleSetFilter, setRuleSetFilter] = useState<string | null>(null);
+  const { width } = useWindowDimensions();
+  const isCompact = width < 600;
 
   useEffect(() => {
     if (session) {
@@ -167,54 +170,18 @@ export default function MyMatchHistory({ userId }: MyMatchHistoryProps) {
       {/* Ruleset filter */}
       {options && options.rule_sets.length > 1 && (
         <View style={{
-          flexDirection: 'row',
           paddingHorizontal: 12,
           paddingVertical: 8,
-          gap: 6,
           borderBottomWidth: 1,
           borderBottomColor: colors.border.primary,
         }}>
-          <Pressable
-            onPress={() => setRuleSetFilter(null)}
-            style={{
-              paddingHorizontal: 10,
-              paddingVertical: 6,
-              borderRadius: 6,
-              backgroundColor: ruleSetFilter === null ? colors.brand.amber + '22' : 'transparent',
-              borderWidth: 1,
-              borderColor: ruleSetFilter === null ? colors.brand.amber : colors.border.primary,
-            }}
-          >
-            <Text style={{
-              fontSize: 12,
-              fontWeight: ruleSetFilter === null ? '700' : '400',
-              color: ruleSetFilter === null ? colors.brand.amber : colors.text.tertiary,
-            }}>
-              All
-            </Text>
-          </Pressable>
-          {options.rule_sets.map((rs) => (
-            <Pressable
-              key={rs.id}
-              onPress={() => setRuleSetFilter(rs.id)}
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                borderRadius: 6,
-                backgroundColor: ruleSetFilter === rs.id ? colors.brand.amber + '22' : 'transparent',
-                borderWidth: 1,
-                borderColor: ruleSetFilter === rs.id ? colors.brand.amber : colors.border.primary,
-              }}
-            >
-              <Text style={{
-                fontSize: 12,
-                fontWeight: ruleSetFilter === rs.id ? '700' : '400',
-                color: ruleSetFilter === rs.id ? colors.brand.amber : colors.text.tertiary,
-              }}>
-                {rs.name}
-              </Text>
-            </Pressable>
-          ))}
+          <RuleSetFilter
+            ruleSets={options.rule_sets}
+            value={ruleSetFilter}
+            onChange={setRuleSetFilter}
+            isCompact={isCompact}
+            colors={colors}
+          />
         </View>
       )}
 
