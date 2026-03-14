@@ -9,6 +9,8 @@ interface ErrorModalProps {
   message: string;
   onDismiss: () => void;
   variant?: 'error' | 'info';
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 export function ErrorModal({
@@ -17,6 +19,8 @@ export function ErrorModal({
   message,
   onDismiss,
   variant = 'error',
+  actionLabel,
+  onAction,
 }: ErrorModalProps) {
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
@@ -69,16 +73,32 @@ export function ErrorModal({
             {/* Divider */}
             <View style={[styles.divider, { backgroundColor: colors.border.primary }]} />
 
-            {/* Dismiss button */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.dismissButton,
-                { backgroundColor: accentColor, opacity: pressed ? 0.85 : 1 },
-              ]}
-              onPress={onDismiss}
-            >
-              <Text style={styles.dismissButtonText}>Dismiss</Text>
-            </Pressable>
+            {/* Buttons */}
+            <View style={[styles.buttonRow, actionLabel ? styles.buttonRowSplit : null]}>
+              {actionLabel && onAction && (
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.actionButton,
+                    { borderColor: accentColor, opacity: pressed ? 0.85 : 1 },
+                  ]}
+                  onPress={onAction}
+                >
+                  <Text style={[styles.actionButtonText, { color: accentColor }]}>
+                    {actionLabel}
+                  </Text>
+                </Pressable>
+              )}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.dismissButton,
+                  actionLabel ? styles.dismissButtonFlex : null,
+                  { backgroundColor: accentColor, opacity: pressed ? 0.85 : 1 },
+                ]}
+                onPress={onDismiss}
+              >
+                <Text style={styles.dismissButtonText}>Dismiss</Text>
+              </Pressable>
+            </View>
           </View>
         </Pressable>
       </Pressable>
@@ -140,6 +160,13 @@ const styles = StyleSheet.create({
     width: '100%',
     marginVertical: Spacing.sm,
   },
+  buttonRow: {
+    width: '100%',
+  },
+  buttonRowSplit: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
   dismissButton: {
     width: '100%',
     height: 44,
@@ -147,8 +174,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  dismissButtonFlex: {
+    width: undefined,
+    flex: 1,
+  },
   dismissButtonText: {
     color: '#ffffff',
+    fontSize: Typography.fontSize.base,
+    fontWeight: Typography.fontWeight.semibold,
+    letterSpacing: Typography.letterSpacing.wide,
+  },
+  actionButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonText: {
     fontSize: Typography.fontSize.base,
     fontWeight: Typography.fontWeight.semibold,
     letterSpacing: Typography.letterSpacing.wide,

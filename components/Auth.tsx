@@ -17,17 +17,36 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { modal, showError, hideModal } = useErrorModal();
+  const { modal, showError, showInfo, hideModal } = useErrorModal();
 
   async function signInWithEmail() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      showError("Sign In Failed", "Invalid email or password. Please try again.");
+      const isUnverified = error.message === "Email not confirmed";
+      if (isUnverified) {
+        showError(
+          "Email Not Verified",
+          "Please verify your email address before signing in. Check your inbox for a confirmation link.",
+          { actionLabel: "Resend Email", onAction: resendVerification }
+        );
+      } else {
+        showError("Sign In Failed", "Invalid email or password. Please try again.");
+      }
     } else {
       router.replace("/");
     }
     setLoading(false);
+  }
+
+  async function resendVerification() {
+    hideModal();
+    const { error } = await supabase.auth.resend({ type: "signup", email });
+    if (error) {
+      showError("Resend Failed", "Could not resend verification email. Please try again.");
+    } else {
+      showInfo("Email Sent", "A new verification link has been sent to your inbox.");
+    }
   }
 
   return (
@@ -37,6 +56,9 @@ export default function Auth() {
         title={modal.title}
         message={modal.message}
         onDismiss={hideModal}
+        variant={modal.variant}
+        actionLabel={modal.action?.actionLabel}
+        onAction={modal.action?.onAction}
       />
       <Text style={[styles.title, { color: colors.text.primary }]}>Sign In</Text>
       <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
