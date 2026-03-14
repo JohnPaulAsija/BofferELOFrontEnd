@@ -50,6 +50,7 @@ export default function MatchList({
   const { options, getRuleSetName } = useOptions();
 
   useEffect(() => { setPage(1); }, [search, ruleSetFilter]);
+  useEffect(() => { if (isCompact) { setPageSize(5); setPage(1); } }, [isCompact]);
 
   const filtered = matches.filter((m) => {
     if (searchable && search) {
@@ -207,6 +208,7 @@ export default function MatchList({
           onPageChange={setPage}
           onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
           colors={colors}
+          hidePageSize={isCompact}
         />
       )}
     </View>

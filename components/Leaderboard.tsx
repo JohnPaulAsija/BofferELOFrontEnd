@@ -21,6 +21,7 @@ export default function Leaderboard() {
   const isCompact = width < 600;
 
   useEffect(() => { setPage(1); }, [search]);
+  useEffect(() => { if (isCompact) { setPageSize(5); setPage(1); } }, [isCompact]);
 
   useEffect(() => {
     let cancelled = false;
@@ -172,6 +173,7 @@ export default function Leaderboard() {
                 onPageChange={setPage}
                 onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
                 colors={colors}
+                hidePageSize={isCompact}
               />
             )}
           </>
