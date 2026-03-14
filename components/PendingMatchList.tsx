@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, TextInput, Pressable, TouchableOpacity, ViewStyle } from 'react-native';
+import { View, Text, ActivityIndicator, TextInput, Pressable, TouchableOpacity, ViewStyle, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { PendingMatch } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useOptions } from '@/contexts/OptionsContext';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import RuleSetFilter from '@/components/ui/rule-set-filter';
 
 function timeAgo(isoString: string): string {
   const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
@@ -37,6 +38,8 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 600;
 
   const selectable = !!onConfirmSelected || !!onRejectSelected;
 
@@ -173,55 +176,14 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
             minWidth: 160,
           }}
         />
-        {options && options.rule_sets.length > 1 && (
-          <View style={{
-            flexDirection: 'row',
-            borderWidth: 1,
-            borderColor: colors.border.primary,
-            borderRadius: 6,
-            backgroundColor: colors.background.primary,
-            overflow: 'hidden',
-          }}>
-            <Pressable
-              onPress={() => setRuleSetFilter(null)}
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 10,
-                minHeight: 44,
-                justifyContent: 'center',
-                backgroundColor: ruleSetFilter === null ? colors.brand.amber + '22' : 'transparent',
-              }}
-            >
-              <Text style={{
-                fontSize: 13,
-                fontWeight: ruleSetFilter === null ? '700' : '400',
-                color: ruleSetFilter === null ? colors.brand.amber : colors.text.tertiary,
-              }}>
-                All
-              </Text>
-            </Pressable>
-            {options.rule_sets.map((rs) => (
-              <Pressable
-                key={rs.id}
-                onPress={() => setRuleSetFilter(rs.id)}
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 10,
-                  minHeight: 44,
-                  justifyContent: 'center',
-                  backgroundColor: ruleSetFilter === rs.id ? colors.brand.amber + '22' : 'transparent',
-                }}
-              >
-                <Text style={{
-                  fontSize: 13,
-                  fontWeight: ruleSetFilter === rs.id ? '700' : '400',
-                  color: ruleSetFilter === rs.id ? colors.brand.amber : colors.text.tertiary,
-                }}>
-                  {rs.name}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+        {options && (
+          <RuleSetFilter
+            ruleSets={options.rule_sets}
+            value={ruleSetFilter}
+            onChange={setRuleSetFilter}
+            isCompact={isCompact}
+            colors={colors}
+          />
         )}
         {!!onConfirmSelected && (
           <TouchableOpacity

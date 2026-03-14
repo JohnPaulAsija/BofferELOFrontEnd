@@ -16,8 +16,7 @@ import { version as APP_VERSION } from '../package.json';
 import { BofferFightingContent } from '@/content/about-boffer-fighting';
 import { AboutAuthorContent } from '@/content/about-author';
 
-// TODO: Replace with actual repository URL once repo is public
-const FRONTEND_GITHUB_URL = 'https://github.com/TODO/bofferelo-frontend';
+const FRONTEND_GITHUB_URL = 'https://github.com/JohnPaulAsija/BofferELOFrontEnd';
 const BACKEND_GITHUB_URL = 'https://github.com/JohnPaulAsija/BofferELOBackEnd';
 
 // ─── Section component ────────────────────────────────────────────────────────
