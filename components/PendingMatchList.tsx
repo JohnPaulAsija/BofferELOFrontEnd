@@ -181,7 +181,7 @@ export default function PendingMatchList({ matches, loading, style, onConfirmSel
             ruleSets={options.rule_sets}
             value={ruleSetFilter}
             onChange={setRuleSetFilter}
-            isCompact={isCompact}
+            isCompact={true}
             colors={colors}
           />
         )}
