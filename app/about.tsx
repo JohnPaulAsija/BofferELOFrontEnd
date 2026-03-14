@@ -13,6 +13,8 @@ import { getBackendVersionFromAPI } from '@/lib/apiInteractions';
 import { TermsModal } from '@/components/ui/terms-modal';
 // Frontend version is the authoritative source of truth for the app release
 import { version as APP_VERSION } from '../package.json';
+import { BofferFightingContent } from '@/content/about-boffer-fighting';
+import { AboutAuthorContent } from '@/content/about-author';
 
 // TODO: Replace with actual repository URLs once repos are public
 const FRONTEND_GITHUB_URL = 'https://github.com/TODO/bofferelo-frontend';
@@ -143,34 +145,12 @@ export default function AboutScreen() {
 
         {/* ── Boffer fighting ── */}
         <Section title="What is Boffer Fighting?" accentColor={colors.brand.orange} colors={colors}>
-          <BodyText colors={colors}>
-            Boffer fighting (also called foam fighting or LARP combat) is a full-contact martial sport
-            in which participants strike each other with padded foam weapons. Hits to limbs are treated as
-            wounds; hits to the torso or head end the bout. Weapons are constructed to strict padding
-            standards to ensure safety at full speed.
-          </BodyText>
-          <BodyText colors={colors}>
-            The practice spans a wide range of communities — from dedicated combat sports groups like
-            Belegarth and Dagorhir, to broader LARP systems where combat is one element of a larger game.
-            Tournaments may be singles, team melees, or scenario-based events.
-          </BodyText>
-          <BodyText colors={colors}>
-            BofferElo focuses on individual 1v1 duels, making it easy to track personal skill progression
-            across informal pickup fights and organised events alike.
-          </BodyText>
+          <BofferFightingContent />
         </Section>
 
         {/* ── About the Author ── */}
         <Section title="About the Author" accentColor={colors.brand.green} colors={colors}>
-          {/* TODO: Replace placeholder text below with your real bio / motivation */}
-          <BodyText colors={colors}>
-            [TODO: Write a short paragraph about yourself — your background, how you got into boffer
-            fighting, and what inspired you to build BofferElo.]
-          </BodyText>
-          <BodyText colors={colors}>
-            [TODO: Add any additional context — the community you fight with, how long you've been doing
-            it, or what you hope this tool will do for the boffer scene.]
-          </BodyText>
+          <AboutAuthorContent />
         </Section>
 
         <Text style={[styles.footer, { color: colors.text.tertiary }]}>
