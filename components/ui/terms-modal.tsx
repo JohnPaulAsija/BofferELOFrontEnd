@@ -29,7 +29,10 @@ This software is currently in BETA. BofferElo is provided as-is without warranti
 Your account is hosted on Google Cloud infrastructure.
 
 5. CONDUCT AND ACCEPTABLE USE
-You agree to use BofferElo in compliance with all applicable laws and regulations. Any violation of these terms may result in account suspension or termination.`;
+You agree to use BofferElo in compliance with all applicable laws and regulations. Any violation of these terms may result in account suspension or termination.
+
+6. ACCOUNT DELETION
+Upon deletion of your account, (a) any pending matches awaiting confirmation will be automatically rejected, (b) your profile will be permanently removed from the leaderboard and cannot be recovered, (c) your confirmed match history will be retained for the integrity of other players' records, and (d) your username will continue to appear on historical match results.`;
 
 export function TermsModal({ visible, onDismiss }: TermsModalProps) {
   const { isDark } = useTheme();

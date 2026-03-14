@@ -323,6 +323,12 @@ export default function UserProfileComponent({ userId, isOwnProfile = false }: P
             padding: 12,
           }}>
             <Text style={{ fontSize: 11, fontWeight: '700', color: colors.brand.red, letterSpacing: 1, marginBottom: 10 }}>DANGER ZONE</Text>
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.text.primary, marginBottom: 6 }}>What happens when you delete your account?</Text>
+              <Text style={{ fontSize: 12, color: colors.text.secondary, lineHeight: 20 }}>
+                {'\u2022 Your account is permanently removed and cannot be recovered\n\u2022 Any pending matches are automatically cancelled\n\u2022 You are removed from the leaderboard rankings\n\u2022 Your past match results remain on record \u2014 other players will still see your name in their match history'}
+              </Text>
+            </View>
             {!showDeletePanel ? (
               <TouchableOpacity
                 onPress={() => { setDeleteText(''); setShowDeletePanel(true); }}
@@ -333,7 +339,7 @@ export default function UserProfileComponent({ userId, isOwnProfile = false }: P
             ) : (
               <View>
                 <Text style={{ fontSize: 13, color: colors.text.secondary, marginBottom: 10 }}>
-                  This is permanent. Your match history will be preserved under a [deleted] account.
+                  Deleting your account is permanent and cannot be undone. Any pending matches will be cancelled. You will be removed from the leaderboard, but your name will still appear in other players' match history.
                 </Text>
                 <Input
                   value={deleteText}
