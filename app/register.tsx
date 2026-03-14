@@ -10,10 +10,6 @@ import { ErrorModal } from "@/components/ui/error-modal";
 import { TermsModal } from "@/components/ui/terms-modal";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import {
-  setupUserFromAPI,
-  updatePreferencesFromAPI,
-} from "@/lib/apiInteractions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getThemeColors, Spacing, Typography, BorderRadius } from "@/constants/theme";
@@ -131,7 +127,19 @@ export default function RegisterScreen() {
       const {
         data: { session },
         error: signUpError,
-      } = await supabase.auth.signUp({ email: trimmedEmail, password });
+      } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password,
+        options: {
+          data: {
+            username: trimmedUsername,
+            ...(gender && { gender }),
+            ...(preferredGame && { preferredGame }),
+            ...(preferredWeapon && { preferredWeapon }),
+            ...(preferredShield && { preferredShield }),
+          },
+        },
+      });
 
       if (signUpError) {
         showError("Sign Up Failed", "Unable to create account. The email may already be in use, or the password does not meet requirements.");
@@ -147,17 +155,6 @@ export default function RegisterScreen() {
           () => router.replace("/auth")
         );
         return;
-      }
-
-      await setupUserFromAPI(session.access_token, trimmedUsername);
-
-      if (gender || preferredGame || preferredWeapon || preferredShield) {
-        await updatePreferencesFromAPI(session.access_token, {
-          gender,
-          preferred_game: preferredGame,
-          preferred_weapon: preferredWeapon,
-          preferred_shield: preferredShield,
-        });
       }
 
       router.replace("/");

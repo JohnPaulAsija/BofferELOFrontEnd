@@ -43,7 +43,6 @@ The app talks to a separate FastAPI backend (default: `http://127.0.0.1:8000`). 
 - `GET /matches` — recent confirmed matches (public, cached 60s)
 - `POST /matches` — report a match (authenticated; rate-limited for users)
 - `POST /matches/{id}/confirm` — confirm a pending match (the reporting user cannot confirm their own report)
-- `POST /users/me/setup` — one-time setup after signup (username + accept terms)
 - Full API reference: `Documentation/FRONTEND_API.md`
 
 ### Theming
@@ -51,6 +50,12 @@ All colors, spacing, typography, border radii, shadows, and pre-built StyleSheet
 
 ### Environment Variables
 All Expo public env vars must be prefixed with `EXPO_PUBLIC_` to be accessible in the app bundle. The `.env` file at the project root is the source of truth.
+
+### Plans
+Implementation plans live in the top-level `plans/` folder. Completed plans are moved to `plans/completed/`.
+
+### Git
+Do not run any git commands. The user handles all git operations (commits, staging, branching, etc.).
 
 ### Platform-specific behavior
 The app targets iOS, Android, and web. Use `Platform.OS` checks where behavior must differ (e.g., header safe-area padding for iOS is already handled in `BofferEloStyles.headerInner`). The "Record Match" button in the header is hidden on mobile (`Platform.OS !== 'ios' && Platform.OS !== 'android'`).

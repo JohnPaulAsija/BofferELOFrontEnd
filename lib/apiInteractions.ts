@@ -64,21 +64,6 @@ export const getOptionsFromAPI = async (): Promise<OptionsResponse> => {
   return response.json();
 };
 
-export const setupUserFromAPI = async (jwt: string, username: string): Promise<void> => {
-  const response = await fetch(`${API_URL}/users/me/setup`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, accept_terms: true }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      409: 'That username is already taken. Please choose a different one.',
-      400: 'Invalid username. Please use only letters, numbers, and underscores (3–30 characters).',
-    };
-    throw new Error(messages[response.status] ?? 'Account setup failed. Please try again.');
-  }
-};
-
 export const updatePreferencesFromAPI = async (
   jwt: string,
   prefs: { gender: string | null; preferred_game: string | null; preferred_weapon: string | null; preferred_shield: string | null }
