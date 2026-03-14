@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { getLeaderboardFromAPI, LeaderboardEntry } from '@/lib/apiInteractions';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import Pagination from '@/components/ui/pagination';
 
 const RANK_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'];
 
@@ -11,11 +12,15 @@ export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isCompact = width < 600;
+
+  useEffect(() => { setPage(1); }, [search]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,88 +110,73 @@ export default function Leaderboard() {
         <ActivityIndicator size="large" color={colors.brand.amber} style={{ marginTop: 32 }} />
       )}
 
-      {!leaderboardLoading && leaderboard
-        .map((entry, index) => ({ entry, index }))
-        .filter(({ entry }) => entry.username.toLowerCase().includes(search.toLowerCase()))
-        .map(({ entry, index }) => {
-        const isTop3 = index < 3;
-        const rankColor = RANK_COLORS[index] ?? colors.text.secondary;
-
-        const totalGames = entry.wins + entry.losses;
-        const winRate = totalGames > 0 ? Math.round((entry.wins / totalGames) * 100) : 0;
+      {!leaderboardLoading && (() => {
+        const filtered = leaderboard
+          .map((entry, index) => ({ entry, index }))
+          .filter(({ entry }) => entry.username.toLowerCase().includes(search.toLowerCase()));
+        const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
         return (
-          <Pressable
-            key={entry.id}
-            onPress={() => router.push(`/user/${entry.id}`)}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: pressed ? colors.background.tertiary : colors.background.secondary,
-              borderRadius: 8,
-              padding: 12,
-              marginBottom: 6,
-              borderWidth: 1,
-              borderColor: isTop3 ? colors.brand.amber + '55' : colors.border.primary,
+          <>
+            {paged.map(({ entry, index }) => {
+              const isTop3 = index < 3;
+              const rankColor = RANK_COLORS[index] ?? colors.text.secondary;
+              const totalGames = entry.wins + entry.losses;
+              const winRate = totalGames > 0 ? Math.round((entry.wins / totalGames) * 100) : 0;
+
+              return (
+                <Pressable
+                  key={entry.id}
+                  onPress={() => router.push(`/user/${entry.id}`)}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: pressed ? colors.background.tertiary : colors.background.secondary,
+                    borderRadius: 8,
+                    padding: 12,
+                    marginBottom: 6,
+                    borderWidth: 1,
+                    borderColor: isTop3 ? colors.brand.amber + '55' : colors.border.primary,
+                  })}
+                >
+                  <Text style={{ width: 52, fontWeight: '700', fontSize: 15, color: rankColor, textAlign: 'center' }}>
+                    #{index + 1}
+                  </Text>
+                  <Text numberOfLines={1} style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.text.primary, textAlign: 'center' }}>
+                    {entry.username}
+                  </Text>
+                  {!isCompact && <Text style={{ width: 56, fontSize: 15, fontWeight: '700', color: colors.brand.amber, textAlign: 'center', marginRight: 16 }}>
+                    {entry.elo}
+                  </Text>}
+                  {!isCompact && <Text style={{ width: 60, fontSize: 13, color: colors.text.secondary, textAlign: 'center', marginRight: 16 }}>
+                    {entry.wins}W/{entry.losses}L
+                  </Text>}
+                  {!isCompact && <Text style={{ width: 64, fontSize: 13, color: colors.text.secondary, textAlign: 'center' }}>
+                    {winRate}%
+                  </Text>}
+                </Pressable>
+              );
             })}
-          >
-            {/* Rank */}
-            <Text style={{
-              width: 52,
-              fontWeight: '700',
-              fontSize: 15,
-              color: rankColor,
-              textAlign: 'center',
-            }}>
-              #{index + 1}
-            </Text>
 
-            {/* Warrior */}
-            <Text numberOfLines={1} style={{
-              flex: 1,
-              fontSize: 15,
-              fontWeight: '700',
-              color: colors.text.primary,
-              textAlign: 'center',
-            }}>
-              {entry.username}
-            </Text>
+            {filtered.length === 0 && (
+              <Text style={{ color: colors.text.tertiary, textAlign: 'center', paddingVertical: 24 }}>
+                {search ? 'No warriors found.' : 'No leaderboard data yet.'}
+              </Text>
+            )}
 
-            {/* ELO */}
-            {!isCompact && <Text style={{
-              width: 56,
-              fontSize: 15,
-              fontWeight: '700',
-              color: colors.brand.amber,
-              textAlign: 'center',
-              marginRight: 16,
-            }}>
-              {entry.elo}
-            </Text>}
-
-            {/* W/L */}
-            {!isCompact && <Text style={{
-              width: 60,
-              fontSize: 13,
-              color: colors.text.secondary,
-              textAlign: 'center',
-              marginRight: 16,
-            }}>
-              {entry.wins}W/{entry.losses}L
-            </Text>}
-
-            {/* Win Rate */}
-            {!isCompact && <Text style={{
-              width: 64,
-              fontSize: 13,
-              color: colors.text.secondary,
-              textAlign: 'center',
-            }}>
-              {winRate}%
-            </Text>}
-          </Pressable>
+            {filtered.length > 0 && (
+              <Pagination
+                page={page}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+                colors={colors}
+              />
+            )}
+          </>
         );
-        })}
+      })()}
       </View>
   );
 }

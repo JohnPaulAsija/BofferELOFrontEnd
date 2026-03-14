@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, TextInput, Pressable, ViewStyle, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Match } from '@/lib/apiInteractions';
@@ -6,6 +6,7 @@ import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useOptions } from '@/contexts/OptionsContext';
 import RuleSetFilter from '@/components/ui/rule-set-filter';
+import Pagination from '@/components/ui/pagination';
 
 function timeAgo(isoString: string): string {
   const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
@@ -39,12 +40,16 @@ export default function MatchList({
 }: Props) {
   const [search, setSearch] = useState('');
   const [ruleSetFilter, setRuleSetFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const { isDark } = useTheme();
   const colors = getThemeColors(isDark);
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isCompact = width < 600;
   const { options, getRuleSetName } = useOptions();
+
+  useEffect(() => { setPage(1); }, [search, ruleSetFilter]);
 
   const filtered = matches.filter((m) => {
     if (searchable && search) {
@@ -58,6 +63,8 @@ export default function MatchList({
     }
     return true;
   });
+
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <View style={[{
@@ -146,7 +153,7 @@ export default function MatchList({
         <ActivityIndicator size="large" color={colors.brand.amber} style={{ marginTop: 32 }} />
       )}
 
-      {!loading && filtered.map((match) => (
+      {!loading && paged.map((match) => (
         <Pressable key={match.id} onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id } })}>
           {({ pressed }) => (
             <View style={{
@@ -190,6 +197,17 @@ export default function MatchList({
         <Text style={{ color: colors.text.tertiary, textAlign: 'center', paddingVertical: 24 }}>
           {searchable && search ? 'No matches found.' : emptyText}
         </Text>
+      )}
+
+      {!loading && filtered.length > 0 && (
+        <Pagination
+          page={page}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+          colors={colors}
+        />
       )}
     </View>
   );
