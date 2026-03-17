@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getUserProfileFromAPI, getUserMatchesFromAPI, changeUsernameFromAPI, changeEmailFromAPI, deleteAccountFromAPI, UserProfile, Match } from '@/lib/apiInteractions';
 import MatchList from '@/components/MatchList';
@@ -145,6 +145,12 @@ export default function UserProfileComponent({ userId, isOwnProfile = false }: P
     }
   }
 
+  function handleShareFacebook() {
+    const profileUrl = `https://experimental-philosophy.com/user/${userId}`;
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(profileUrl)}`;
+    Linking.openURL(shareUrl).catch(() => {});
+  }
+
   async function confirmDelete() {
     const jwt = session?.access_token;
     if (!jwt) return;
@@ -224,6 +230,23 @@ export default function UserProfileComponent({ userId, isOwnProfile = false }: P
           isOwnProfile={isOwnProfile}
           onProfileUpdate={handleProfileUpdate}
         />
+
+        {/* Share on Facebook — own profile only */}
+        {isOwnProfile && (
+          <View style={{ marginTop: 16, alignItems: 'flex-start' }}>
+            <TouchableOpacity
+              onPress={handleShareFacebook}
+              style={{
+                backgroundColor: '#1877F2',
+                borderRadius: 6,
+                paddingVertical: 8,
+                paddingHorizontal: 14,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#fff' }}>Share on Facebook</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Account section — own profile only */}
         {isOwnProfile && (
