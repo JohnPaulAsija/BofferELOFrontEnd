@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import {
   Animated,
   LayoutChangeEvent,
+  Linking,
   Pressable,
   Text,
   useWindowDimensions,
@@ -14,13 +15,15 @@ type NewsItem = {
   date: string;
   title: string;
   body: string;
+  link?: { url: string; label: string };
 };
 
 const NEWS_ITEMS: NewsItem[] = [
   {
     date: '2026-03-17',
-    title: 'Welcome to BofferElo!',
-    body: 'Track your ELO rating, record matches, and climb the leaderboard. More features coming soon.',
+    title: '🎉 BofferElo Beta is Live!',
+    body: 'We\'ve soft-launched BofferElo to beta! Track your ELO, record matches, and climb the leaderboard. Check out the new Share button on your profile to show off your stats.\n\nFound a bug or have a feature idea? Join our Discord — we have dedicated channels for both.',
+    link: { url: 'https://discord.gg/hpDzsGd4', label: 'Join the Discord →' },
   },
 ];
 
@@ -47,6 +50,13 @@ function ContentItems({ items, colors }: { items: NewsItem[]; colors: ReturnType
           <Text style={{ fontSize: 14, color: colors.text.secondary, lineHeight: 20 }}>
             {item.body}
           </Text>
+          {item.link && (
+            <Pressable onPress={() => Linking.openURL(item.link!.url)} style={{ marginTop: 8 }}>
+              <Text style={{ fontSize: 14, color: colors.brand.amber, fontWeight: '600' }}>
+                {item.link.label}
+              </Text>
+            </Pressable>
+          )}
         </View>
       ))}
     </View>
