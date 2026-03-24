@@ -23,7 +23,7 @@ const NEWS_ITEMS: NewsItem[] = [
     date: '2026-03-17',
     title: '🎉 BofferElo Beta is Live!',
     body: 'We\'ve soft-launched BofferElo to beta! Track your ELO, record matches, and climb the leaderboard. Check out the new Share button on your profile to show off your stats.\n\nFound a bug or have a feature idea? Join our Discord — we have dedicated channels for both.',
-    link: { url: 'https://discord.gg/hpDzsGd4', label: 'Join the Discord →' },
+    link: { url: 'https://discord.gg/UnZV9acrfz', label: 'Join the Discord →' },
   },
 ];
 
