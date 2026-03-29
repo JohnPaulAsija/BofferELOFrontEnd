@@ -84,7 +84,7 @@ function ChipPicker({
 export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpdate }: ProfilePreferencesProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { options } = useOptions();
+  const { options, getRuleSetName } = useOptions();
   const [draftGender, setDraftGender] = useState<string | null>(null);
   const [draftGame, setDraftGame] = useState<string | null>(null);
   const [draftWeapon, setDraftWeapon] = useState<string | null>(null);
@@ -172,7 +172,7 @@ export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpd
       {isEditing && options ? (
         <View style={{ marginTop: Spacing.md }}>
           <ChipPicker label="Gender" options={options.genders} value={draftGender} onSelect={setDraftGender} />
-          <ChipPicker label="Preferred Game" options={options.games} value={draftGame} onSelect={setDraftGame} />
+          <ChipPicker label="Preferred Game" options={options.rule_sets.map(r => r.name)} value={options.rule_sets.find(r => r.id === draftGame)?.name ?? null} onSelect={(name) => setDraftGame(name ? (options.rule_sets.find(r => r.name === name)?.id ?? null) : null)} />
           <ChipPicker label="Preferred Weapon" options={options.weapons} value={draftWeapon} onSelect={setDraftWeapon} />
           <ChipPicker label="Preferred Shield" options={options.shields} value={draftShield} onSelect={setDraftShield} />
           <View style={{ flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm }}>
@@ -213,7 +213,7 @@ export default function ProfilePreferences({ profile, isOwnProfile, onProfileUpd
       ) : (
         <>
           <InfoRow label="Gender" value={profile.gender ?? '—'} />
-          <InfoRow label="Preferred Game" value={profile.preferredGame ?? '—'} />
+          <InfoRow label="Preferred Game" value={profile.preferredGame ? getRuleSetName(profile.preferredGame) : '—'} />
           <InfoRow label="Preferred Weapon" value={profile.preferredWeapon ?? '—'} />
           <View style={{
             flexDirection: 'row',

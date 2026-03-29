@@ -246,9 +246,9 @@ export default function RegisterScreen() {
             />
             <OptionPicker
               label="Preferred Game"
-              options={options.games}
-              value={preferredGame}
-              onSelect={setPreferredGame}
+              options={options.rule_sets.map(r => r.name)}
+              value={options.rule_sets.find(r => r.id === preferredGame)?.name ?? null}
+              onSelect={(name) => setPreferredGame(name ? (options.rule_sets.find(r => r.name === name)?.id ?? null) : null)}
             />
             <OptionPicker
               label="Preferred Weapon"
