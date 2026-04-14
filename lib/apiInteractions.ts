@@ -12,26 +12,49 @@ if (!API_URL.startsWith('https://')) {
   throw new Error('EXPO_PUBLIC_API_URL must use HTTPS');
 }
 
-export const getLeaderboardFromAPI = async (): Promise<LeaderboardEntry[]> => {
-  const response = await fetch(`${API_URL}/users/top`);
+// --- Internal helpers ---
+
+function authHeaders(jwt: string, json = true): HeadersInit {
+  const h: Record<string, string> = { Authorization: `Bearer ${jwt}` };
+  if (json) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+async function fetchPublic<T>(url: string, fnName: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(url, options);
   if (!response.ok) {
     const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getLeaderboardFromAPI] Request failed:', err.message);
+    if (__DEV__) console.error(`[${fnName}] Request failed:`, err.message);
     throw err;
   }
-  const data = await response.json();
-  return data.leaderboard as LeaderboardEntry[];
+  return response.json() as Promise<T>;
+}
+
+async function fetchWithErrors<T>(
+  url: string,
+  options: RequestInit,
+  errorMessages: Record<number, string>,
+  fallbackMessage: string,
+): Promise<T> {
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(errorMessages[response.status] ?? fallbackMessage);
+  }
+  // Guard against 204 No Content (empty body)
+  const text = await response.text();
+  return text ? (JSON.parse(text) as T) : (undefined as T);
+}
+
+// --- API functions ---
+
+export const getLeaderboardFromAPI = async (): Promise<LeaderboardEntry[]> => {
+  const data = await fetchPublic<{ leaderboard: LeaderboardEntry[] }>(`${API_URL}/users/top`, 'getLeaderboardFromAPI');
+  return data.leaderboard;
 };
 
 export const getRecentMatchesFromAPI = async (): Promise<Match[]> => {
-  const response = await fetch(`${API_URL}/matches`);
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getRecentMatchesFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  const data = await response.json();
-  return data.matches as Match[];
+  const data = await fetchPublic<{ matches: Match[] }>(`${API_URL}/matches`, 'getRecentMatchesFromAPI');
+  return data.matches;
 };
 
 export type MeResponse = {
@@ -42,79 +65,37 @@ export type MeResponse = {
 };
 
 export const getMeFromAPI = async (jwt: string): Promise<MeResponse> => {
-  const response = await fetch(`${API_URL}/users/me`, {
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getMeFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  const data = await response.json();
-  return data.user as MeResponse;
+  const data = await fetchPublic<{ user: MeResponse }>(`${API_URL}/users/me`, 'getMeFromAPI', { headers: authHeaders(jwt, false) });
+  return data.user;
 };
 
-export const getOptionsFromAPI = async (): Promise<OptionsResponse> => {
-  const response = await fetch(`${API_URL}/options`);
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getOptionsFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  return response.json();
-};
+export const getOptionsFromAPI = (): Promise<OptionsResponse> =>
+  fetchPublic<OptionsResponse>(`${API_URL}/options`, 'getOptionsFromAPI');
 
 export const updatePreferencesFromAPI = async (
   jwt: string,
-  prefs: { gender: string | null; preferred_game: string | null; preferred_weapon: string | null; preferred_shield: string | null }
+  prefs: { gender: string | null; preferred_game: string | null; preferred_weapon: string | null; preferred_shield: string | null },
 ): Promise<void> => {
-  const response = await fetch(`${API_URL}/users/me/preferences`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(prefs),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      400: 'Invalid preference value. Please check your selections.',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to save preferences. Please try again.');
-  }
+  await fetchWithErrors<unknown>(
+    `${API_URL}/users/me/preferences`,
+    { method: 'PATCH', headers: authHeaders(jwt), body: JSON.stringify(prefs) },
+    { 400: 'Invalid preference value. Please check your selections.' },
+    'Failed to save preferences. Please try again.',
+  );
 };
 
-export const getUserMatchesFromAPI = async (
+export const getUserMatchesFromAPI = (
   userId: string,
-  limit = 100
-): Promise<{ matches: Match[]; next_cursor: string | null }> => {
-  const response = await fetch(`${API_URL}/users/${userId}/matches?limit=${limit}`);
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getUserMatchesFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  return response.json();
-};
+  limit = 100,
+): Promise<{ matches: Match[]; next_cursor: string | null }> =>
+  fetchPublic(`${API_URL}/users/${userId}/matches?limit=${limit}`, 'getUserMatchesFromAPI');
 
-export const getMyMatchesFromAPI = async (jwt: string): Promise<MyMatchesResponse> => {
-  const response = await fetch(`${API_URL}/users/me/matches`, {
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getMyMatchesFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  return response.json();
-};
+export const getMyMatchesFromAPI = (jwt: string): Promise<MyMatchesResponse> =>
+  fetchPublic<MyMatchesResponse>(`${API_URL}/users/me/matches`, 'getMyMatchesFromAPI', { headers: authHeaders(jwt, false) });
 
 export const getUserProfileFromAPI = async (userId: string): Promise<UserProfile> => {
-  const response = await fetch(`${API_URL}/users/${userId}`);
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getUserProfileFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  const data = await response.json();
-  return data.user as UserProfile;
+  const data = await fetchPublic<{ user: UserProfile }>(`${API_URL}/users/${userId}`, 'getUserProfileFromAPI');
+  return data.user;
 };
 
 export type UserListEntry = {
@@ -123,82 +104,48 @@ export type UserListEntry = {
 };
 
 export const getUsersListFromAPI = async (jwt: string): Promise<UserListEntry[]> => {
-  const response = await fetch(`${API_URL}/users`, {
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getUsersListFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  const data = await response.json();
-  return data.users as UserListEntry[];
+  const data = await fetchPublic<{ users: UserListEntry[] }>(`${API_URL}/users`, 'getUsersListFromAPI', { headers: authHeaders(jwt, false) });
+  return data.users;
 };
 
 export const adminChangeUsernameFromAPI = async (
   jwt: string,
   userId: string,
-  username: string
+  username: string,
 ): Promise<{ username: string }> => {
-  const response = await fetch(`${API_URL}/users/${userId}/username`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      403: 'Insufficient permissions',
-      404: 'User not found',
-      409: 'Username already taken',
-      422: 'Invalid username',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to change username.');
-  }
-  const data = await response.json();
+  const data = await fetchWithErrors<{ user: { username: string } }>(
+    `${API_URL}/users/${userId}/username`,
+    { method: 'PATCH', headers: authHeaders(jwt), body: JSON.stringify({ username }) },
+    { 403: 'Insufficient permissions', 404: 'User not found', 409: 'Username already taken', 422: 'Invalid username' },
+    'Failed to change username.',
+  );
   return data.user;
 };
 
 export const adminChangeEmailFromAPI = async (
   jwt: string,
   userId: string,
-  email: string
+  email: string,
 ): Promise<{ email: string }> => {
-  const response = await fetch(`${API_URL}/users/${userId}/email`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      403: 'Insufficient permissions',
-      404: 'User not found',
-      422: 'Invalid email address',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to change email.');
-  }
-  const data = await response.json();
+  const data = await fetchWithErrors<{ user: { email: string } }>(
+    `${API_URL}/users/${userId}/email`,
+    { method: 'PATCH', headers: authHeaders(jwt), body: JSON.stringify({ email }) },
+    { 403: 'Insufficient permissions', 404: 'User not found', 422: 'Invalid email address' },
+    'Failed to change email.',
+  );
   return data.user;
 };
 
-export const adminDeleteUserFromAPI = async (
+export const adminDeleteUserFromAPI = (
   jwt: string,
-  userId: string
-): Promise<{ deleted: string }> => {
-  const response = await fetch(`${API_URL}/users/${userId}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      400: 'Cannot delete a system account',
-      403: 'Insufficient permissions',
-      404: 'User not found',
-      422: 'Invalid user ID',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to delete user.');
-  }
-  return response.json();
-};
+  userId: string,
+): Promise<{ deleted: string }> =>
+  fetchWithErrors(
+    `${API_URL}/users/${userId}`,
+    { method: 'DELETE', headers: authHeaders(jwt, false) },
+    { 400: 'Cannot delete a system account', 403: 'Insufficient permissions', 404: 'User not found', 422: 'Invalid user ID' },
+    'Failed to delete user.',
+  );
 
 export type ReportMatchResponse = {
   id: string;
@@ -217,81 +164,45 @@ export type ReportMatchResponse = {
 };
 
 export const getMatchDetailFromAPI = async (matchId: string): Promise<MatchDetail> => {
-  const response = await fetch(`${API_URL}/matches/${matchId}`);
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getMatchDetailFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  const data = await response.json();
-  return data.match as MatchDetail;
+  const data = await fetchPublic<{ match: MatchDetail }>(`${API_URL}/matches/${matchId}`, 'getMatchDetailFromAPI');
+  return data.match;
 };
 
-export const getPendingMatchesFromAPI = async (
+export const getPendingMatchesFromAPI = (
   jwt: string,
-  cursor?: string
+  cursor?: string,
 ): Promise<{ pending_matches: PendingMatch[]; next_cursor: string | null }> => {
   const url = cursor
     ? `${API_URL}/admin/matches/pending?before=${encodeURIComponent(cursor)}`
     : `${API_URL}/admin/matches/pending`;
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getPendingMatchesFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  return response.json();
+  return fetchPublic(url, 'getPendingMatchesFromAPI', { headers: authHeaders(jwt, false) });
 };
 
 export const reportMatchFromAPI = async (
   jwt: string,
   winner_id: string,
   loser_id: string,
-  rule_set_id: string
+  rule_set_id: string,
 ): Promise<ReportMatchResponse> => {
-  const response = await fetch(`${API_URL}/matches`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ winner_id, loser_id, rule_set_id }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      409: 'This match has already been reported.',
-      422: 'Please select a valid ruleset.',
-      429: "You've reported too many matches recently. Please wait before reporting another.",
-      400: 'Invalid match data. Please check your selection and try again.',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to report match. Please try again.');
-  }
-  const data = await response.json();
-  return data.match as ReportMatchResponse;
+  const data = await fetchWithErrors<{ match: ReportMatchResponse }>(
+    `${API_URL}/matches`,
+    { method: 'POST', headers: authHeaders(jwt), body: JSON.stringify({ winner_id, loser_id, rule_set_id }) },
+    { 409: 'This match has already been reported.', 422: 'Please select a valid ruleset.', 429: "You've reported too many matches recently. Please wait before reporting another.", 400: 'Invalid match data. Please check your selection and try again.' },
+    'Failed to report match. Please try again.',
+  );
+  return data.match;
 };
 
-export const confirmMatchesFromAPI = async (
+export const confirmMatchesFromAPI = (
   jwt: string,
-  matchIds: string[]
-): Promise<BatchMatchResponse> => {
-  const response = await fetch(`${API_URL}/matches/confirm`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ match_ids: matchIds }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      401: 'Your session has expired. Please sign in again.',
-      404: 'User profile not found.',
-      422: 'Invalid request.',
-      429: 'Too many requests. Please wait before trying again.',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to confirm matches. Please try again.');
-  }
-  return response.json();
-};
+  matchIds: string[],
+): Promise<BatchMatchResponse> =>
+  fetchWithErrors(
+    `${API_URL}/matches/confirm`,
+    { method: 'POST', headers: authHeaders(jwt), body: JSON.stringify({ match_ids: matchIds }) },
+    { 401: 'Your session has expired. Please sign in again.', 404: 'User profile not found.', 422: 'Invalid request.', 429: 'Too many requests. Please wait before trying again.' },
+    'Failed to confirm matches. Please try again.',
+  );
 
 // TODO: Add GET /version endpoint to the FastAPI backend.
 // Expected response shape: { frontend_version: string, backend_version: string, api_version: string }
@@ -301,90 +212,48 @@ export type VersionResponse = {
 
 export const changeUsernameFromAPI = async (
   jwt: string,
-  username: string
+  username: string,
 ): Promise<{ username: string }> => {
-  const response = await fetch(`${API_URL}/users/me/username`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      409: 'Username already taken',
-      422: 'Invalid username format',
-      429: 'Too many requests — try again in a minute',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to change username.');
-  }
-  const data = await response.json();
+  const data = await fetchWithErrors<{ user: { username: string } }>(
+    `${API_URL}/users/me/username`,
+    { method: 'PATCH', headers: authHeaders(jwt), body: JSON.stringify({ username }) },
+    { 409: 'Username already taken', 422: 'Invalid username format', 429: 'Too many requests — try again in a minute' },
+    'Failed to change username.',
+  );
   return data.user;
 };
 
-export const changeEmailFromAPI = async (
+export const changeEmailFromAPI = (
   jwt: string,
-  email: string
-): Promise<{ message: string }> => {
-  const response = await fetch(`${API_URL}/users/me/email`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      422: 'Invalid email address',
-      429: 'Too many requests — try again in a minute',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to change email.');
-  }
-  return response.json();
-};
+  email: string,
+): Promise<{ message: string }> =>
+  fetchWithErrors(
+    `${API_URL}/users/me/email`,
+    { method: 'PATCH', headers: authHeaders(jwt), body: JSON.stringify({ email }) },
+    { 422: 'Invalid email address', 429: 'Too many requests — try again in a minute' },
+    'Failed to change email.',
+  );
 
-export const deleteAccountFromAPI = async (
-  jwt: string
-): Promise<{ deleted: string }> => {
-  const response = await fetch(`${API_URL}/users/me`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${jwt}` },
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      429: 'Too many requests — try again in a minute',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to delete account.');
-  }
-  return response.json();
-};
-
-export const getBackendVersionFromAPI = async (): Promise<VersionResponse> => {
-  const response = await fetch(`${API_URL}/version`);
-  if (!response.ok) {
-    const err = new Error(`HTTP ${response.status}`);
-    if (__DEV__) console.error('[getBackendVersionFromAPI] Request failed:', err.message);
-    throw err;
-  }
-  return response.json();
-};
-
-export const rejectMatchesFromAPI = async (
+export const deleteAccountFromAPI = (
   jwt: string,
-  matchIds: string[]
-): Promise<BatchMatchResponse> => {
-  const response = await fetch(`${API_URL}/matches/reject`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ match_ids: matchIds }),
-  });
-  if (!response.ok) {
-    const messages: Record<number, string> = {
-      401: 'Your session has expired. Please sign in again.',
-      404: 'User profile not found.',
-      422: 'Invalid request.',
-      429: 'Too many requests. Please wait before trying again.',
-    };
-    throw new Error(messages[response.status] ?? 'Failed to reject matches. Please try again.');
-  }
-  return response.json();
-};
+): Promise<{ deleted: string }> =>
+  fetchWithErrors(
+    `${API_URL}/users/me`,
+    { method: 'DELETE', headers: authHeaders(jwt, false) },
+    { 429: 'Too many requests — try again in a minute' },
+    'Failed to delete account.',
+  );
+
+export const getBackendVersionFromAPI = (): Promise<VersionResponse> =>
+  fetchPublic<VersionResponse>(`${API_URL}/version`, 'getBackendVersionFromAPI');
+
+export const rejectMatchesFromAPI = (
+  jwt: string,
+  matchIds: string[],
+): Promise<BatchMatchResponse> =>
+  fetchWithErrors(
+    `${API_URL}/matches/reject`,
+    { method: 'POST', headers: authHeaders(jwt), body: JSON.stringify({ match_ids: matchIds }) },
+    { 401: 'Your session has expired. Please sign in again.', 404: 'User profile not found.', 422: 'Invalid request.', 429: 'Too many requests. Please wait before trying again.' },
+    'Failed to reject matches. Please try again.',
+  );
