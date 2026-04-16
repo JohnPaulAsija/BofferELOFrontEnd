@@ -15,6 +15,7 @@ npm run android      # Start with Android emulator
 npm run ios          # Start with iOS simulator
 npm run web          # Start web version
 npm run lint         # Run ESLint via expo lint
+npm test             # Run Jest test suite
 ```
 
 ## Architecture
@@ -47,6 +48,12 @@ The app talks to a separate FastAPI backend (default: `http://127.0.0.1:8000`). 
 
 ### Theming
 All colors, spacing, typography, border radii, shadows, and pre-built StyleSheet styles are exported from `constants/theme.ts`. Use `BofferEloColors` for colors and `BofferEloStyles` for common component styles. Do not inline raw hex values or magic numbers — reference the theme constants.
+
+### Testing
+- Jest with the `jest-expo` preset; component tests use `@testing-library/react-native` (v13+ built-in matchers — do not add `@testing-library/jest-native`, it's deprecated)
+- Test files: `**/__tests__/**/*.test.{ts,tsx,js}` colocated with the code they cover (e.g. `components/__tests__/themed-text.test.tsx`)
+- Components that consume context should be rendered via a `renderWithProviders` helper — see `components/__tests__/themed-text.test.tsx` for the pattern
+- Mock Supabase and the backend API (`jest.mock('@/lib/supabase', ...)`); don't make real network calls from tests
 
 ### Environment Variables
 All Expo public env vars must be prefixed with `EXPO_PUBLIC_` to be accessible in the app bundle. The `.env` file at the project root is the source of truth.

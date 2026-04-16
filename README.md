@@ -9,7 +9,25 @@ npm install          # Install dependencies
 npx expo start       # Start dev server (scan QR with Expo Go, or press w/a/i)
 npm run web          # Start web version only
 npm run lint         # Run ESLint
+npm test             # Run Jest test suite
 ```
+
+## Tests
+
+Tests run under **Jest** using the `jest-expo` preset. Component tests use **[@testing-library/react-native](https://callstack.github.io/react-native-testing-library/)** (its built-in matchers — the older `@testing-library/jest-native` is deprecated).
+
+```bash
+npm test                              # Run all tests
+npm test -- --watch                   # Watch mode
+npm test -- themed-text               # Run tests matching a name
+```
+
+**Conventions**
+
+- Test files live next to the code they cover, under a `__tests__/` folder, and use the `.test.ts` / `.test.tsx` suffix (e.g. `components/__tests__/themed-text.test.tsx`).
+- The Jest `testMatch` pattern is `<rootDir>/**/__tests__/**/*.test.{ts,tsx,js}`.
+- For components that consume context, wrap them with a `renderWithProviders` helper (see `components/__tests__/themed-text.test.tsx` for the pattern). Add more providers to that helper as new tests need them.
+- Supabase and the backend API should be mocked (e.g. `jest.mock('@/lib/supabase', ...)`) — real network calls do not belong in the unit test suite.
 
 Copy `.env.example` to `.env` and fill in your values before starting:
 
